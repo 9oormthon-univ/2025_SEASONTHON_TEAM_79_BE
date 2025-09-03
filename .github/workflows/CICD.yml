@@ -22,8 +22,13 @@ jobs:
       - name: Checkout 
         uses: actions/checkout@v4
 
-      - name: Setup Gradle (cache)
-        uses: gradle/actions/setup-gradle@v3
+      - name: Write application-secret.yml from Base64 secret
+        shell: bash
+        run: |
+            set -euo pipefail
+            mkdir -p src/main/resources
+            echo "${{ secrets.APPLICATION_SECRET }}" | base64 -d > src/main/resources/application-secret.yml
+            test -s src/main/resources/application-secret.yml
 
       - name: Build with Gradle
         run: |
