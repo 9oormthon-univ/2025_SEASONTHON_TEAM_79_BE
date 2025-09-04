@@ -5,6 +5,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 import com.seasontone.domain.UserRecord;
 import com.seasontone.dto.ChecklistCreateRequest;
 import com.seasontone.dto.ChecklistItemDto;
+import com.seasontone.dto.ChecklistUpdateRequest;
 import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.security.AuthUser;
 import com.seasontone.service.ChecklistService;
@@ -34,17 +35,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChecklistController {
   private final ChecklistService checklistService;
 
+  //체크리스트 생성
   @PostMapping("/checklists")
   @ResponseStatus(HttpStatus.CREATED)
   public ChecklistResponse create(@RequestBody @Valid ChecklistCreateRequest request) {
     return checklistService.create(request);   // ← request 타입이 위 DTO여야 함
   }
 
+  //체크리스트 id별로 찾음.
   @GetMapping("/checklists/{checkId}")
   public ChecklistResponse get(@PathVariable Long checkId) {
     return checklistService.get(checkId);
   }
 
+  //유저별로 체크리스트 보여줌
   @GetMapping(value = "/users/{userId}/checklists/page", produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<ChecklistResponse> pageByUser(
       @PathVariable Long userId,
@@ -54,14 +58,18 @@ public class ChecklistController {
     return checklistService.pageByUser(userId, pageable);
   }
 
-  @PutMapping("/checklists/{checkId}/items")
-  public ChecklistResponse updateItems(@PathVariable Long checkId,
+  //모든 요소 같이 업데이트
+  @PutMapping(value = "/checklists/{checkId}",
+      consumes = MediaType.APPLICATION_JSON_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  public ChecklistResponse updateAll(@PathVariable Long checkId,
       @AuthenticationPrincipal AuthUser me,
-      @RequestBody @Valid ChecklistItemDto dto) {
+      @RequestBody @Valid ChecklistUpdateRequest req) {
     if (me == null) throw new AccessDeniedException("Login required.");
-    return checklistService.updateItemsOwned(checkId, me.id(), dto);
+    return checklistService.updateAllOwned(checkId, me.id(), req);
   }
 
+  //삭제
   @DeleteMapping("/checklists/{checkId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable Long checkId, @AuthenticationPrincipal AuthUser me) {

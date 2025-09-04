@@ -6,19 +6,12 @@ import com.seasontone.domain.User;
 import com.seasontone.domain.UserRecord;
 import com.seasontone.dto.ChecklistCreateRequest;
 import com.seasontone.dto.ChecklistItemDto;
-import com.seasontone.dto.RecordCreateRequest;
-import com.seasontone.dto.RecordUpdateRequest;
+import com.seasontone.dto.ChecklistUpdateRequest;
 import com.seasontone.dto.response.ChecklistResponse;
-import com.seasontone.dto.response.RecordDetailResponse;
-import com.seasontone.dto.response.RecordSummaryResponse;
 import com.seasontone.repository.ListingRepository;
 import com.seasontone.repository.UserRecordRepository;
 import com.seasontone.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.Valid;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,32 +71,54 @@ public class ChecklistService {
   }
 
   @Transactional
-  public ChecklistResponse updateItemsOwned(Long checkId, Long currentUserId, ChecklistItemDto dto) {
+  public ChecklistResponse updateAllOwned(Long checkId, Long currentUserId, ChecklistUpdateRequest req) {
     UserRecord r = userRecordRepository.findByIdAndUser_Id(checkId, currentUserId)
         .orElseThrow(() -> new AccessDeniedException("You are not the owner of this checklist."));
 
-    if (r.getItems() == null) r.attachBlankItems();
+    // ----- 부모(UserRecord) 필드 교체 -----
+    r.setTitle(req.title());
+    r.setNotes(req.notes());
 
-    // (예) 부모/자식 모두 수정 가능
-    if (dto.name() != null)      r.getItems().setName(dto.name());
-    if (dto.address() != null)   r.getItems().setAddress(dto.address());
-    if (dto.monthly() != null)   r.getItems().setMonthly(dto.monthly());
-    if (dto.water() != null)     r.getItems().setWater(dto.water());
-    if (dto.cleanliness() != null) r.getItems().setCleanliness(dto.cleanliness());
-    if (dto.options() != null)   r.getItems().setOptions(dto.options());
-    if (dto.security() != null)  r.getItems().setSecurity(dto.security());
-    if (dto.noise() != null)     r.getItems().setNoise(dto.noise());
-    if (dto.surroundings() != null) r.getItems().setSurroundings(dto.surroundings());
-    if (dto.elevator() != null)  r.getItems().setElevator(dto.elevator());
-    if (dto.veranda() != null)   r.getItems().setVeranda(dto.veranda());
-    if (dto.pet() != null)       r.getItems().setPet(dto.pet());
-    if (dto.memo() != null)      r.getItems().setMemo(dto.memo());
+    // listingId 처리: null 이면 연결 해제, 값 있으면 재연결
+    if (req.listingId() == null) {
+      r.setListing(null);
+    } else {
+      Listing listing = listingRepository.findById(req.listingId())
+          .orElseThrow(() -> new EntityNotFoundException("Listing not found: " + req.listingId()));
+      r.setListing(listing);
+    }
 
-    // 부모 필드도 필요하면 같이 수정하기
-    // if (dto.title() != null) r.setTitle(dto.title());  // DTO에 있으면
-    // if (dto.notes() != null) r.setNotes(dto.notes());
+    // ----- 자식(ChecklistItems) 전체 교체 -----
+    if (req.items() != null) {
+      if (r.getItems() == null) r.attachBlankItems();
+      replaceItems(r.getItems(), req.items());   // null 값도 그대로 반영(전체 교체)
+    } else {
+      // 정책: req.items()가 null이면 items는 그대로 두기
+      // 전체 교체를 엄격히 원하면 여기서도 비우거나 새로 초기화 가능
+    }
 
-    return toResponse(r); // 영속 상태라 트랜잭션 커밋 시 자동 flush
+    return toResponse(r);
+  }
+
+  /** null 포함 전체 교체 */
+  private void replaceItems(ChecklistItems items, ChecklistItemDto dto) {
+    items.setName(dto.name());
+    items.setAddress(dto.address());
+    items.setMonthly(dto.monthly());
+    // 점수 필드들(네 필드명 기준으로 교체)
+    items.setMining(dto.mining());               // 채광
+    items.setWater(dto.water());
+    items.setCleanliness(dto.cleanliness());
+    items.setOptions(dto.options());
+    items.setSecurity(dto.security());
+    items.setNoise(dto.noise());
+    items.setSurroundings(dto.surroundings());
+    items.setRecycling(dto.recycling());
+    // 옵션/메모
+    items.setElevator(dto.elevator());
+    items.setVeranda(dto.veranda());
+    items.setPet(dto.pet());
+    items.setMemo(dto.memo());
   }
 
   @Transactional
@@ -130,6 +145,11 @@ public class ChecklistService {
     items.setMemo(dto.memo());
   }
 
+  //반올림 해주는 함수
+  private static double round1(double v) {
+    return Math.round(v * 10.0) / 10.0; // 둘째 자리에서 반올림
+  }
+  
   private ChecklistResponse toResponse(UserRecord r) {
     ChecklistItems i = r.getItems();
     ChecklistItemDto itemsDto = (i == null)
@@ -151,6 +171,8 @@ public class ChecklistService {
             i.getPet(),
             i.getMemo()
         );
+    //계산결과 받아옴
+    double avg = (i != null) ? round1(i.averageScore()) : 0.0;
 
     return new ChecklistResponse(
         r.getId(),
@@ -160,6 +182,7 @@ public class ChecklistService {
         r.getNotes(),
         r.getCreatedAt(),
         r.getUpdatedAt(),
+        avg,
         itemsDto
     );
   }

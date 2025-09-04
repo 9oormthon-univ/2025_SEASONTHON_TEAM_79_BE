@@ -11,5 +11,6 @@ public record ChecklistResponse(
     String notes,
     Instant createdAt,
     Instant updatedAt,
+    Double avgScore,
     ChecklistItemDto items
 ) {}

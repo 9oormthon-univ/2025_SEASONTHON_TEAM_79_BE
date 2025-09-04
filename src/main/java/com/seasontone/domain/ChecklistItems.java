@@ -47,5 +47,11 @@ public class ChecklistItems {
     return Stream.of(mining, water, cleanliness, options, security, noise, surroundings, recycling)
         .filter(Objects::nonNull).toList();
   }
+
+  @Transient
+  public double averageScore() {
+    var s = scores(); // 이미 있는 메서드
+    return s.isEmpty() ? 0.0 : s.stream().mapToInt(Integer::intValue).average().orElse(0.0);
+  }
 }
 

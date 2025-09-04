@@ -26,6 +26,7 @@ public class SecurityConfig {
         .httpBasic(Customizer.withDefaults());
 
     //유저 필터 (삭제, 수정 유저만 할 수 있게)
+    //user가 없기 때문에 임시방편으로 해둠.
     http.addFilterBefore(xUserIdAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
