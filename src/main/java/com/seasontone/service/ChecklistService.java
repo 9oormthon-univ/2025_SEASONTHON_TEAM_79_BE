@@ -22,6 +22,7 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,22 +77,40 @@ public class ChecklistService {
         .map(this::toResponse);
   }
 
-  /** PUT /api/checklists/{checkId}/items */
   @Transactional
-  public ChecklistResponse updateItems(Long checkId, ChecklistItemDto dto) {
-    UserRecord r = userRecordRepository.findById(checkId)
-        .orElseThrow(() -> new EntityNotFoundException("Checklist not found: " + checkId));
+  public ChecklistResponse updateItemsOwned(Long checkId, Long currentUserId, ChecklistItemDto dto) {
+    UserRecord r = userRecordRepository.findByIdAndUser_Id(checkId, currentUserId)
+        .orElseThrow(() -> new AccessDeniedException("You are not the owner of this checklist."));
 
     if (r.getItems() == null) r.attachBlankItems();
-    applyItems(r.getItems(), dto);
 
-    return toResponse(r);
+    // (예) 부모/자식 모두 수정 가능
+    if (dto.name() != null)      r.getItems().setName(dto.name());
+    if (dto.address() != null)   r.getItems().setAddress(dto.address());
+    if (dto.monthly() != null)   r.getItems().setMonthly(dto.monthly());
+    if (dto.water() != null)     r.getItems().setWater(dto.water());
+    if (dto.cleanliness() != null) r.getItems().setCleanliness(dto.cleanliness());
+    if (dto.options() != null)   r.getItems().setOptions(dto.options());
+    if (dto.security() != null)  r.getItems().setSecurity(dto.security());
+    if (dto.noise() != null)     r.getItems().setNoise(dto.noise());
+    if (dto.surroundings() != null) r.getItems().setSurroundings(dto.surroundings());
+    if (dto.elevator() != null)  r.getItems().setElevator(dto.elevator());
+    if (dto.veranda() != null)   r.getItems().setVeranda(dto.veranda());
+    if (dto.pet() != null)       r.getItems().setPet(dto.pet());
+    if (dto.memo() != null)      r.getItems().setMemo(dto.memo());
+
+    // 부모 필드도 필요하면 같이 수정하기
+    // if (dto.title() != null) r.setTitle(dto.title());  // DTO에 있으면
+    // if (dto.notes() != null) r.setNotes(dto.notes());
+
+    return toResponse(r); // 영속 상태라 트랜잭션 커밋 시 자동 flush
   }
 
-  /** DELETE /api/checklists/{checkId} */
   @Transactional
-  public void delete(Long id) {
-    userRecordRepository.deleteById(id);
+  public void deleteOwned(Long checkId, Long currentUserId) {
+    long deleted = userRecordRepository.deleteByIdAndUser_Id(checkId, currentUserId);
+    if (deleted == 0) throw new AccessDeniedException("You are not the owner or record not found.");
+    // ★ 여기서 부모 삭제 → cascade/orphanRemoval에 의해 자식도 같이 삭제됨
   }
 
   // ---------- helpers ----------

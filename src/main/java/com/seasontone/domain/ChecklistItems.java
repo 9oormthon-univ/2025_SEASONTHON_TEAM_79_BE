@@ -15,7 +15,8 @@ public class ChecklistItems {
   @Id @Column(name = "check_id")
   private Long id;
 
-  @OneToOne(fetch = FetchType.LAZY) @MapsId
+  @OneToOne(fetch = FetchType.LAZY)
+  @MapsId                               // check_id = 부모 PK 공유
   @JoinColumn(name = "check_id")
   private UserRecord checklist;
 

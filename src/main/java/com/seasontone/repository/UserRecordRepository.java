@@ -16,4 +16,7 @@ public interface UserRecordRepository extends JpaRepository<UserRecord, Long> {
 
   @EntityGraph(attributePaths = {"items", "listing"})
   Page<UserRecord> findByListing_Id(Long listingId, Pageable pageable);
+
+  Optional<UserRecord> findByIdAndUser_Id(Long id, Long userId);
+  long deleteByIdAndUser_Id(Long id, Long userId);
 }

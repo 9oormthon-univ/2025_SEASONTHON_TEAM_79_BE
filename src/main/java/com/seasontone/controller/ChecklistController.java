@@ -6,6 +6,7 @@ import com.seasontone.domain.UserRecord;
 import com.seasontone.dto.ChecklistCreateRequest;
 import com.seasontone.dto.ChecklistItemDto;
 import com.seasontone.dto.response.ChecklistResponse;
+import com.seasontone.security.AuthUser;
 import com.seasontone.service.ChecklistService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,14 +56,17 @@ public class ChecklistController {
 
   @PutMapping("/checklists/{checkId}/items")
   public ChecklistResponse updateItems(@PathVariable Long checkId,
+      @AuthenticationPrincipal AuthUser me,
       @RequestBody @Valid ChecklistItemDto dto) {
-    return checklistService.updateItems(checkId, dto);
+    if (me == null) throw new AccessDeniedException("Login required.");
+    return checklistService.updateItemsOwned(checkId, me.id(), dto);
   }
 
   @DeleteMapping("/checklists/{checkId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable Long checkId) {
-    checklistService.delete(checkId);
+  public void delete(@PathVariable Long checkId, @AuthenticationPrincipal AuthUser me) {
+    if (me == null) throw new AccessDeniedException("Login required.");
+    checklistService.deleteOwned(checkId, me.id());
   }
 
   //매물별 체크리스트..

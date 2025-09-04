@@ -45,7 +45,10 @@ public class UserRecord {
   private Instant updatedAt;
 
   @Setter
-  @OneToOne(mappedBy = "checklist", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  @OneToOne(mappedBy = "checklist",
+      cascade = CascadeType.ALL,       // 부모 변경/삭제가 자식에 전파
+      orphanRemoval = true,            // 자식 참조 끊기면 자식 삭제
+      fetch = FetchType.LAZY)
   private ChecklistItems items;
 
   public UserRecord() {}
@@ -54,8 +57,8 @@ public class UserRecord {
   public void attachBlankItems() {
     if (this.items == null) {
       ChecklistItems i = new ChecklistItems();
-      i.setChecklist(this);   // @MapsId 관계 세팅
-      this.items = i;
+      i.setChecklist(this);   // 양방향 연결(자식 -> 부모)
+      this.items = i;         // 양방향 연결(부모 -> 자식)
     }
   }
 }
