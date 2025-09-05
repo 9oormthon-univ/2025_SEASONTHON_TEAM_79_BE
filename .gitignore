@@ -36,3 +36,4 @@ application-secret.yml
 
 ### VS Code ###
 .vscode/
+src/main/resources/application-secret.yml

@@ -10,7 +10,6 @@ import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.security.AuthUser;
 import com.seasontone.service.ChecklistService;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -58,6 +58,7 @@ public class ChecklistController {
     return checklistService.pageByUser(userId, pageable);
   }
 
+//보안걸고.. 유저 update, delete
   //모든 요소 같이 업데이트
   @PutMapping(value = "/checklists/{checkId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -77,11 +78,30 @@ public class ChecklistController {
     checklistService.deleteOwned(checkId, me.id());
   }
 
+/*
+  //모든 요소 같이 업데이트
+  @PutMapping(value="/checklists/{checkId}", consumes = "application/json", produces = "application/json")
+  public ChecklistResponse updateAll(@PathVariable Long checkId,
+      @RequestBody @Valid ChecklistUpdateRequest req,
+      @RequestHeader("X-USER-ID") Long userId) {
+    return checklistService.updateAllOwned(checkId, userId, req);
+  }
+
+  //삭제
+  @DeleteMapping("/checklists/{checkId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable Long checkId,
+      @RequestHeader("X-USER-ID") Long userId) {
+    checklistService.deleteOwned(checkId, userId);
+  }
+
   //매물별 체크리스트..
   @GetMapping("/listings/{listingId}/checklists/page")
   public Page<ChecklistResponse> previewByListingPaged(
       @PathVariable Long listingId, @PageableDefault(size=10, sort="createdAt", direction = DESC) Pageable p) {
     return checklistService.pageByListing(listingId, p);
   }
+
+ */
 
 }

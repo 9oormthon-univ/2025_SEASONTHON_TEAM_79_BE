@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+  //보안 걸어서..
 
   private final XUserIdAuthFilter xUserIdAuthFilter;
 
@@ -20,14 +21,25 @@ public class SecurityConfig {
     http
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/sc", "/env").permitAll()
-            .anyRequest().permitAll()   // 개발 중 전체 오픈
+            .requestMatchers("/api/s3/ping", "/sc", "/env").permitAll()
+            .anyRequest().permitAll() // 개발 단계: 전체 오픈
         )
         .httpBasic(Customizer.withDefaults());
 
-    //유저 필터 (삭제, 수정 유저만 할 수 있게)
-    //user가 없기 때문에 임시방편으로 해둠.
+    // 등록 위치는 UsernamePasswordAuthenticationFilter 이전
     http.addFilterBefore(xUserIdAuthFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();
   }
+
+
+/*
+  @Bean
+  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http.csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+    return http.build();
+  }
+
+ */
+
 }
