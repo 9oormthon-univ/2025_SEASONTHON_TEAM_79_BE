@@ -31,36 +31,37 @@ public class ChecklistPhotoService {
   private static final List<String> ALLOWED_TYPES = List.of("image/jpeg","image/png","image/webp");
 
   @Transactional
-  public PhotoDto upload(Long checkId, Long currentUserId, MultipartFile file, String caption){
-    if (file == null || file.isEmpty()) throw new IllegalArgumentException("file is empty");
-    if (file.getSize() > MAX_SIZE) throw new IllegalArgumentException("file too large");
-    if (file.getContentType()==null || ALLOWED_TYPES.stream().noneMatch(t -> t.equalsIgnoreCase(file.getContentType())))
-      throw new IllegalArgumentException("unsupported content-type");
+    public PhotoDto upload(Long checkId, Long currentUserId, MultipartFile file, String caption){
+      if (file == null || file.isEmpty()) throw new IllegalArgumentException("file is empty");
+      if (file.getSize() > MAX_SIZE) throw new IllegalArgumentException("file too large");
+      if (file.getContentType()==null || ALLOWED_TYPES.stream().noneMatch(t -> t.equalsIgnoreCase(file.getContentType())))
+        throw new IllegalArgumentException("unsupported content-type");
 
-    UserRecord r = userRecordRepository.findByIdAndUser_Id(checkId, currentUserId)
-        .orElseThrow(() -> new AccessDeniedException("Not owner or record not found"));
-    if (r.getItems()==null){ r.attachBlankItems(); }
+      UserRecord r = userRecordRepository.findByIdAndUser_Id(checkId, currentUserId)
+          .orElseThrow(() -> new AccessDeniedException("Not owner or record not found"));
+      if (r.getItems()==null){ r.attachBlankItems(); }
 
-    try {
-      RecordPhoto p = new RecordPhoto();
-      p.setItems(r.getItems());
-      p.setFilename(file.getOriginalFilename());
-      p.setContentType(file.getContentType());
-      p.setSize(file.getSize());
-      p.setCaption(caption);
-      p.setData(file.getBytes());     // ★ 변환 없이 그대로
-      p.setCreatedAt(Instant.now());
-      RecordPhoto saved = photoRepo.save(p);
+      try {
+        RecordPhoto p = new RecordPhoto();
+        p.setItems(r.getItems());
+        p.setFilename(file.getOriginalFilename());
+        p.setContentType(file.getContentType());
+        p.setSize(file.getSize());
+        p.setCaption(caption);
+        p.setData(file.getBytes());     // ★ 변환 없이 그대로
+        p.setCreatedAt(Instant.now());
+        RecordPhoto saved = photoRepo.saveAndFlush(p);
+        Long photoId = saved.getId();
 
-      log.info("[PHOTO-SAVED] checkId={}, itemsId={}, photoId={}, bytes={}",
-          r.getId(), r.getItems().getId(), saved.getId(), saved.getData().length);
+        log.info("[PHOTO-SAVED] checkId={}, itemsId={}, photoId={}, bytes={}",
+            r.getId(), r.getItems().getId(), saved.getId(), saved.getData().length);
 
-      String rawUrl = "/api/photos/%d".formatted(saved.getId()); // 간단 URL
-      return new PhotoDto(saved.getId(), saved.getFilename(), saved.getContentType(),
-          saved.getSize(), saved.getCaption(), saved.getCreatedAt(), rawUrl);
-    } catch(Exception e){
-      throw new RuntimeException("Failed to save photo", e);
-    }
+        String rawUrl = "/api/photos/%d".formatted(saved.getId()); // 간단 URL
+        return new PhotoDto(saved.getId(), saved.getFilename(), saved.getContentType(),
+            saved.getSize(), saved.getCaption(), saved.getCreatedAt(), rawUrl);
+      } catch(Exception e){
+        throw new RuntimeException("Failed to save photo", e);
+      }
   }
 
   @Transactional(readOnly = true)

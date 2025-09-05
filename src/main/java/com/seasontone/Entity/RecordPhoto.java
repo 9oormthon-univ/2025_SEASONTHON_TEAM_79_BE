@@ -20,7 +20,9 @@ import lombok.Setter;
 @Table(name = "record_photos")
 public class RecordPhoto {
 
-  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)   // ← DB가 키 생성
+  @Column(name = "id")
   private Long id;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
