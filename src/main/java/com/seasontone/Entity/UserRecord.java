@@ -1,4 +1,4 @@
-package com.seasontone.domain;
+package com.seasontone.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;

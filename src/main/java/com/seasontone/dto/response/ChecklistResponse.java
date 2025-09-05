@@ -1,7 +1,10 @@
 package com.seasontone.dto.response;
 
 import com.seasontone.dto.ChecklistItemDto;
+import com.seasontone.dto.PhotoDto;
+import com.seasontone.dto.VoiceNoteDto;
 import java.time.Instant;
+import java.util.List;
 
 public record ChecklistResponse(
     Long checkId,
@@ -12,5 +15,7 @@ public record ChecklistResponse(
     Instant createdAt,
     Instant updatedAt,
     Double avgScore,
-    ChecklistItemDto items
+    ChecklistItemDto items,
+    List<PhotoDto> photos,     // 메타만
+    VoiceNoteDto voiceNote     // 메타만
 ) {}

@@ -1,6 +1,6 @@
 package com.seasontone.security;
 
-import com.seasontone.domain.User;
+import com.seasontone.Entity.User;
 import com.seasontone.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @RequiredArgsConstructor
-public class XUserIdAuthFilter extends OncePerRequestFilter {
+public class XDevUserIdAuthFilter extends OncePerRequestFilter {
 
   private final UserRepository userRepository;
 

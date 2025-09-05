@@ -1,7 +1,7 @@
 package com.seasontone.repository;
 
 
-import com.seasontone.domain.UserRecord;
+import com.seasontone.Entity.UserRecord;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;

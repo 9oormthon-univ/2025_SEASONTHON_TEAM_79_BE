@@ -2,7 +2,7 @@ package com.seasontone.controller;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
-import com.seasontone.domain.UserRecord;
+import com.seasontone.Entity.UserRecord;
 import com.seasontone.dto.ChecklistCreateRequest;
 import com.seasontone.dto.ChecklistItemDto;
 import com.seasontone.dto.ChecklistUpdateRequest;

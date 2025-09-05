@@ -1,7 +1,8 @@
-package com.seasontone.domain;
+package com.seasontone.Entity;
 
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -20,8 +21,13 @@ public class ChecklistItems {
   @JoinColumn(name = "check_id")
   private UserRecord checklist;
 
-  @Lob @Column(name = "pic")
-  private byte[] pic; // 사진: 추후 multipart로 교체 권장
+  // 사진: 1:N
+  @OneToMany(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<RecordPhoto> photos = new ArrayList<>();
+
+  // 음성: 1:1 (체크리스트당 하나)
+  @OneToOne(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  private RecordVoiceNote voiceNote;
 
   @Column(name = "name", length = 255)    private String name;
   @Column(name = "address", length = 255) private String address;
@@ -53,5 +59,10 @@ public class ChecklistItems {
     var s = scores(); // 이미 있는 메서드
     return s.isEmpty() ? 0.0 : s.stream().mapToInt(Integer::intValue).average().orElse(0.0);
   }
+
+  // helpers
+  public void addPhoto(RecordPhoto p){ photos.add(p); p.setItems(this); }
+  public void removePhoto(RecordPhoto p){ photos.remove(p); p.setItems(null); }
+  public void setVoiceNote(RecordVoiceNote v){ this.voiceNote = v; if (v!=null) v.setItems(this); }
 }
 

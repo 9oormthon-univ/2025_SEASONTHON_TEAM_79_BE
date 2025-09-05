@@ -1,17 +1,22 @@
 package com.seasontone.service;
 
-import com.seasontone.domain.ChecklistItems;
-import com.seasontone.domain.Listing;
-import com.seasontone.domain.User;
-import com.seasontone.domain.UserRecord;
+import com.seasontone.Entity.ChecklistItems;
+import com.seasontone.Entity.Listing;
+import com.seasontone.Entity.User;
+import com.seasontone.Entity.UserRecord;
 import com.seasontone.dto.ChecklistCreateRequest;
 import com.seasontone.dto.ChecklistItemDto;
 import com.seasontone.dto.ChecklistUpdateRequest;
+import com.seasontone.dto.PhotoDto;
+import com.seasontone.dto.VoiceNoteDto;
 import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.repository.ListingRepository;
+import com.seasontone.repository.RecordPhotoRepository;
+import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.UserRecordRepository;
 import com.seasontone.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +31,8 @@ public class ChecklistService {
   private final UserRepository userRepository;
   private final ListingRepository listingRepository;
   private final UserRecordRepository userRecordRepository;
+  private final RecordPhotoRepository photoRepo;
+  private final RecordVoiceNoteRepository voiceRepo;
 
   /** POST /api/checklists */
   @Transactional
@@ -123,11 +130,10 @@ public class ChecklistService {
 
   @Transactional
   public void deleteOwned(Long checkId, Long currentUserId) {
-    long deleted = userRecordRepository.deleteByIdAndUser_Id(checkId, currentUserId);
-    if (deleted == 0) throw new AccessDeniedException("You are not the owner or record not found.");
-    // ★ 여기서 부모 삭제 → cascade/orphanRemoval에 의해 자식도 같이 삭제됨
+    var r = userRecordRepository.findByIdAndUser_Id(checkId, currentUserId)
+        .orElseThrow(() -> new AccessDeniedException("Not owner"));
+    userRecordRepository.delete(r); // cascade/orphanRemoval로 하위 전부 제거
   }
-
   // ---------- helpers ----------
   private void applyItems(ChecklistItems items, ChecklistItemDto dto) {
     items.setName(dto.name());
@@ -149,30 +155,42 @@ public class ChecklistService {
   private static double round1(double v) {
     return Math.round(v * 10.0) / 10.0; // 둘째 자리에서 반올림
   }
-  
+
   private ChecklistResponse toResponse(UserRecord r) {
     ChecklistItems i = r.getItems();
-    ChecklistItemDto itemsDto = (i == null)
-        ? null
-        : new ChecklistItemDto(
-            i.getName(),
-            i.getAddress(),
-            i.getMonthly(),
-            i.getMining(),
-            i.getWater(),
-            i.getCleanliness(),
-            i.getOptions(),
-            i.getSecurity(),
-            i.getNoise(),
-            i.getSurroundings(),
-            i.getRecycling(),
-            i.getElevator(),
-            i.getVeranda(),
-            i.getPet(),
-            i.getMemo()
-        );
-    //계산결과 받아옴
-    double avg = (i != null) ? round1(i.averageScore()) : 0.0;
+
+    // 기존 itemsDto/avgScore 계산은 그대로...
+    ChecklistItemDto itemsDto = (i == null) ? null : new ChecklistItemDto(
+        i.getName(), i.getAddress(), i.getMonthly(),
+        i.getMining(), i.getWater(), i.getCleanliness(),
+        i.getOptions(), i.getSecurity(), i.getNoise(),
+        i.getSurroundings(), i.getRecycling(),
+        i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo()
+    );
+
+    Double avg = (i == null) ? null : i.averageScore(); // 네가 만든 평균(소수1자리 반올림) 사용
+
+    // ★ 추가: 사진 메타 조회 (items 없으면 빈 리스트)
+    List<PhotoDto> photos = (i == null) ? List.of() :
+        photoRepo.findMetaByItems_Id(i.getId()).stream()
+            .map(m -> new PhotoDto(
+                m.getId(), m.getFilename(), m.getContentType(), m.getSize(),
+                m.getCaption(), m.getCreatedAt(),
+                "/api/checklists/%d/photos/%d/raw".formatted(r.getId(), m.getId())
+            ))
+            .toList();
+
+    // ★ 추가: 음성 메타 조회 (있으면 1개)
+    VoiceNoteDto voice = null;
+    if (i != null) {
+      voice = voiceRepo.findByItems_Id(i.getId())
+          .map(v -> new VoiceNoteDto(
+              v.getFilename(), v.getContentType(), v.getSize(), v.getDurationSec(),
+              v.getTranscript(), v.getSummary(), v.getCreatedAt(), v.getUpdatedAt(),
+              "/api/checklists/%d/audio/raw".formatted(r.getId())
+          ))
+          .orElse(null);
+    }
 
     return new ChecklistResponse(
         r.getId(),
@@ -183,7 +201,9 @@ public class ChecklistService {
         r.getCreatedAt(),
         r.getUpdatedAt(),
         avg,
-        itemsDto
+        itemsDto,
+        photos,   // ← 추가
+        voice     // ← 추가
     );
   }
 
