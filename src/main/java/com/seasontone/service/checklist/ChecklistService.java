@@ -115,4 +115,43 @@ public class ChecklistService {
 				.memo(findChecklist.getMemo())
 				.build();
 	}
+
+	public List<ChecklistGroupResponse> getRegionChecklist(User user) {
+		User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
+		List<Checklist> checklists = checklistRepository.findByAddressContaining(findUser.getRegion());
+
+		Map<String, List<Checklist>> grouped = checklists.stream()
+				.collect(Collectors.groupingBy(Checklist::getAddress));
+
+		return grouped.entrySet().stream()
+				.map(entry -> {
+					List<Checklist> groupList = entry.getValue();
+
+					// 각 그룹에서 가장 최근 생성된 체크리스트 가져오기
+					Checklist latest = groupList.stream()
+							.max(Comparator.comparing(Checklist::getCreatedAt))
+							.orElseThrow();
+
+
+					return ChecklistGroupResponse.builder()
+							.address(entry.getKey())
+							.latestName(latest.getName())
+							.latestMonthly(latest.getMonthly())
+							.latestDeposit(latest.getDeposit())
+							.latestScore(latest.getUserRecord().getScores())
+							.latestMaintenanceFee(latest.getMaintenanceFee())
+							.checklists(groupList.stream()
+									.map(checklist -> ChecklistGroupResponse.ChecklistDetailsResponse.builder()
+											.id(checklist.getId())
+											.name(checklist.getName())
+											.monthly(checklist.getMonthly())
+											.deposit(checklist.getDeposit())
+											.maintenanceFee(checklist.getMaintenanceFee())
+											.score(checklist.getUserRecord().getScores())
+											.build())
+									.toList())
+							.build();
+				})
+				.toList();
+	}
 }

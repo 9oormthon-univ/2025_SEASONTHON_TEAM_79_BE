@@ -35,4 +35,9 @@ public class ChecklistController {
 		return ResponseEntity.ok(checklistService.getChecklistDetails(userRecordId));
 	}
 
+	@GetMapping("/region")
+	public ResponseEntity<List<ChecklistGroupResponse>> getRegionChecklist(@AuthenticationPrincipal User user) {
+		return ResponseEntity.ok(checklistService.getRegionChecklist(user));
+	}
+
 }
