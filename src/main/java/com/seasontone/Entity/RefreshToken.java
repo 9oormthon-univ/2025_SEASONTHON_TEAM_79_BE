@@ -3,10 +3,8 @@ package com.seasontone.Entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.TimeToLive;
-import org.springframework.data.redis.core.index.Indexed;
 
+/*
 @Setter
 @Getter
 @RedisHash(value = "userId")
@@ -24,3 +22,5 @@ public class RefreshToken {
 		this.expirationTime = expirationTime;
 	}
 }
+
+ */

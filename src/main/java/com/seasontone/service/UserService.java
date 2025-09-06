@@ -1,7 +1,5 @@
 package com.seasontone.service;
 
-import com.seasontone.Entity.EmailCode;
-import com.seasontone.Entity.RefreshToken;
 import com.seasontone.Entity.User;
 import com.seasontone.dto.user.EmailCodeRequest;
 import com.seasontone.dto.user.EmailCodeResponse;
@@ -16,8 +14,6 @@ import com.seasontone.dto.user.RegisterResponse;
 import com.seasontone.dto.user.UpdateProfilesRequest;
 import com.seasontone.dto.user.UpdateProfilesResponse;
 import com.seasontone.jwt.JwtUtil;
-import com.seasontone.repository.user.EmailCodeRepository;
-import com.seasontone.repository.user.RefreshTokenRepository;
 import com.seasontone.repository.user.UserRepository;
 import java.security.SecureRandom;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +23,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+/*
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -157,3 +153,5 @@ public class UserService {
 				.build();
 	}
 }
+
+ */

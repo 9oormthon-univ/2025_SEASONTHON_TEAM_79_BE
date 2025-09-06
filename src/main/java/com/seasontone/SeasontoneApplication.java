@@ -11,5 +11,4 @@ public class SeasontoneApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SeasontoneApplication.class, args);
 	}
-
 }

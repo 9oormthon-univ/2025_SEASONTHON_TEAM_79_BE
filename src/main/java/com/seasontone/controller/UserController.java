@@ -13,7 +13,6 @@ import com.seasontone.dto.user.RegisterRequest;
 import com.seasontone.dto.user.RegisterResponse;
 import com.seasontone.dto.user.UpdateProfilesRequest;
 import com.seasontone.dto.user.UpdateProfilesResponse;
-import com.seasontone.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+/*
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
@@ -80,3 +79,5 @@ public class UserController {
 		return ResponseEntity.ok(userService.updateProfiles(request, user));
 	}
 }
+
+ */

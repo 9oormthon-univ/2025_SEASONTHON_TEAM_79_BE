@@ -50,7 +50,10 @@ public class ChecklistItems extends BaseEntity{
   @Column(name = "veranda")      private Boolean veranda;
   @Column(name = "pet")          private Boolean pet;
 
-  @Lob @Column(name = "memo")    private String memo;
+  @Lob
+  @Column(columnDefinition = "TEXT")   // 저장은 TEXT로 넉넉하게
+  @jakarta.validation.constraints.Size(max = 500) // ★ 최대 1000자 검증
+  private String memo;
 
   // 점수 계산.. 이거 들어가나?
   public List<Integer> scores() {
