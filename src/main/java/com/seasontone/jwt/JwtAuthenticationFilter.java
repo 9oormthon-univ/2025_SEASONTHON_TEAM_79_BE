@@ -1,5 +1,6 @@
 package com.seasontone.jwt;
 
+
 import com.seasontone.Entity.User;
 import com.seasontone.repository.user.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -55,6 +56,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     filterChain.doFilter(request, response);
   }
-
-
 }
