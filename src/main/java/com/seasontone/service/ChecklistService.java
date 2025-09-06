@@ -9,14 +9,20 @@ import com.seasontone.dto.ChecklistItemDto;
 import com.seasontone.dto.ChecklistUpdateRequest;
 import com.seasontone.dto.PhotoDto;
 import com.seasontone.dto.VoiceNoteDto;
+import com.seasontone.dto.response.ChecklistGroupResponse;
 import com.seasontone.dto.response.ChecklistResponse;
+import com.seasontone.dto.response.MyChecklistResponse;
+import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.ListingRepository;
 import com.seasontone.repository.RecordPhotoRepository;
 import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.UserRecordRepository;
 import com.seasontone.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +39,7 @@ public class ChecklistService {
   private final UserRecordRepository userRecordRepository;
   private final RecordPhotoRepository photoRepo;
   private final RecordVoiceNoteRepository voiceRepo;
+  private final ChecklistItemsRepository checklistItemsRepository;
 
   /** POST /api/checklists */
   @Transactional
@@ -112,8 +119,11 @@ public class ChecklistService {
     items.setName(dto.name());
     items.setAddress(dto.address());
     items.setMonthly(dto.monthly());
+    items.setDeposit(dto.deposit());
+    items.setMaintenanceFee(dto.maintenanceFee());
+    items.setFloorAreaSqm(dto.floorAreaSqm());
     // 점수 필드들(네 필드명 기준으로 교체)
-    items.setMining(dto.mining());               // 채광
+    items.setMining(dto.mining());// 채광
     items.setWater(dto.water());
     items.setCleanliness(dto.cleanliness());
     items.setOptions(dto.options());
@@ -161,7 +171,7 @@ public class ChecklistService {
 
     // 기존 itemsDto/avgScore 계산은 그대로...
     ChecklistItemDto itemsDto = (i == null) ? null : new ChecklistItemDto(
-        i.getName(), i.getAddress(), i.getMonthly(),
+        i.getName(), i.getAddress(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(),
         i.getOptions(), i.getSecurity(), i.getNoise(),
         i.getSurroundings(), i.getRecycling(),
@@ -212,5 +222,119 @@ public class ChecklistService {
     // if (!listingRepository.existsById(listingId)) throw new EntityNotFoundException(...);
     return userRecordRepository.findByListing_Id(listingId, pageable)
         .map(this::toResponse);
+  }
+
+  //나의 기록 목록 조회
+  public List<MyChecklistResponse> getMyChecklists(User user){
+    User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
+    List<UserRecord> findUserRecords = userRecordRepository.findByUser(findUser);
+
+    return findUserRecords.stream()
+            .map(userRecord -> {
+              ChecklistItems checklist = userRecord.getItems();
+              return MyChecklistResponse.builder()
+                      .id(checklist.getId())
+                      .aptNm(checklist.getName())
+                      .address(checklist.getAddress())
+                      .deposit(checklist.getDeposit())
+                      .monthly(checklist.getMonthly())
+                      .maintenanceFee(checklist.getMaintenanceFee())
+                      .floorAreaSqm(checklist.getFloorAreaSqm())
+                      .avgScore(checklist.averageScore())
+                      .build();
+            })
+            .toList();
+  }
+
+  //주소 + 가장 최근의 월세, 보증금, 관리비, 점수로 묶어서 리스트
+  //둘러보기 목록 조회
+  public List<ChecklistGroupResponse> getGroupedByAddress() {
+    List<ChecklistItems> checklists = checklistItemsRepository.findAll();
+
+    Map<String, List<ChecklistItems>> grouped = checklists.stream()
+            .collect(Collectors.groupingBy(ChecklistItems::getAddress));
+
+    return grouped.entrySet().stream()
+            .map(entry -> {
+              List<ChecklistItems> groupList = entry.getValue();
+
+              // 각 그룹에서 가장 최근 생성된 체크리스트 가져오기
+              ChecklistItems latest = groupList.stream()
+                      .max(Comparator.comparing(ChecklistItems::getCreatedAt))
+                      .orElseThrow();
+
+              double avgScore = groupList.stream()
+                      .mapToDouble(ChecklistItems::averageScore)
+                      .average()
+                      .orElse(0.0);
+
+              return ChecklistGroupResponse.builder()
+                      .address(entry.getKey())
+                      .latestName(latest.getName())
+                      .latestMonthly(latest.getMonthly())
+                      .latestDeposit(latest.getDeposit())
+                      .avgScore(avgScore)
+                      .latestMaintenanceFee(latest.getMaintenanceFee())
+                      .latestFloorAreaSqm(latest.getFloorAreaSqm())
+                      .checklists(groupList.stream()
+                              .map(checklist -> ChecklistGroupResponse.ChecklistDetailsResponse.builder()
+                                      .id(checklist.getId())
+                                      .name(checklist.getName())
+                                      .monthly(checklist.getMonthly())
+                                      .deposit(checklist.getDeposit())
+                                      .maintenanceFee(checklist.getMaintenanceFee())
+                                      .floorAreaSqm(checklist.getFloorAreaSqm())
+                                      .score(checklist.averageScore())
+                                      .build())
+                              .toList())
+                      .build();
+            })
+            .toList();
+  }
+
+  public List<ChecklistGroupResponse> getRegionChecklist(User user) {
+    User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
+    List<ChecklistItems> checklists = checklistItemsRepository.findByAddressContaining(findUser.getRegion());
+
+    Map<String, List<ChecklistItems>> grouped = checklists.stream()
+            .collect(Collectors.groupingBy(ChecklistItems::getAddress));
+
+    return grouped.entrySet().stream()
+            .map(entry -> {
+              List<ChecklistItems> groupList = entry.getValue();
+
+              // 각 그룹에서 가장 최근 생성된 체크리스트 가져오기
+              ChecklistItems latest = groupList.stream()
+                      .max(Comparator.comparing(ChecklistItems::getCreatedAt))
+                      .orElseThrow();
+
+              double avgScore = groupList.stream()
+                      .mapToDouble(ChecklistItems::averageScore)
+                      .average()
+                      .orElse(0.0);
+
+
+              return ChecklistGroupResponse.builder()
+                      .address(entry.getKey())
+                      .latestName(latest.getName())
+                      .latestMonthly(latest.getMonthly())
+                      .latestDeposit(latest.getDeposit())
+                      .avgScore(avgScore)
+                      .latestMaintenanceFee(latest.getMaintenanceFee())
+                      .latestFloorAreaSqm(latest.getFloorAreaSqm())
+                      .checklists(groupList.stream()
+                              .map(checklist -> ChecklistGroupResponse.ChecklistDetailsResponse.builder()
+                                      .id(checklist.getId())
+                                      .name(checklist.getName())
+                                      .monthly(checklist.getMonthly())
+                                      .deposit(checklist.getDeposit())
+                                      .maintenanceFee(checklist.getMaintenanceFee())
+                                      .floorAreaSqm(checklist.getFloorAreaSqm())
+                                      .score(checklist.averageScore())
+                                      .build())
+                              .toList())
+                      .build();
+            })
+            .toList();
   }
 }

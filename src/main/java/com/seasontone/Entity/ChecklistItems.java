@@ -11,7 +11,7 @@ import lombok.*;
 @Entity
 @Table(name = "checklist_items")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class ChecklistItems {
+public class ChecklistItems extends BaseEntity{
 
   @Id @Column(name = "check_id")
   private Long id;
@@ -22,6 +22,7 @@ public class ChecklistItems {
   private UserRecord checklist;
 
   // 사진: 1:N
+  @Builder.Default
   @OneToMany(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RecordPhoto> photos = new ArrayList<>();
 
@@ -32,8 +33,11 @@ public class ChecklistItems {
   @Column(name = "name", length = 255)    private String name;
   @Column(name = "address", length = 255) private String address;
 
-  @Column(name = "monthly") private Boolean monthly;
-  @Column(name = "mining") private Integer mining;     // 채광
+  @Column(name = "monthly")     private int monthly; //월세
+  @Column(name = "deposit")     private int deposit; //보증금
+  @Column(name = "maintenanceFee")    private int  maintenanceFee; //관리비
+  @Column(name = "floorAreaSqm")  private Integer floorAreaSqm; //평수
+  @Column(name = "mining")      private Integer mining;     // 채광
   @Column(name = "water")        private Integer water;        // 수압
   @Column(name = "cleanliness")  private Integer cleanliness;  // 청결
   @Column(name = "options")      private Integer options;      // 옵션

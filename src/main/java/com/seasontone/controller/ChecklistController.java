@@ -5,15 +5,19 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 import com.seasontone.Entity.User;
 import com.seasontone.dto.ChecklistCreateRequest;
 import com.seasontone.dto.ChecklistUpdateRequest;
+import com.seasontone.dto.response.ChecklistGroupResponse;
 import com.seasontone.dto.response.ChecklistResponse;
+import com.seasontone.dto.response.MyChecklistResponse;
 import com.seasontone.service.ChecklistService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -73,6 +77,21 @@ public class ChecklistController {
   public void delete(@PathVariable Long checkId, @AuthenticationPrincipal User me) {
     if (me == null) throw new AccessDeniedException("Login required.");
     checklistService.deleteOwned(checkId, me.getId());
+  }
+
+  @GetMapping("/checklists/region")
+  public ResponseEntity<List<ChecklistGroupResponse>> getRegionChecklist(@AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(checklistService.getRegionChecklist(user));
+  }
+
+  @GetMapping("/checklists/mine")
+  public ResponseEntity<List<MyChecklistResponse>> getMyChecklists(@AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(checklistService.getMyChecklists(user));
+  }
+
+  @GetMapping("/checklists")
+  public ResponseEntity<List<ChecklistGroupResponse>> getGroupedByAddress() {
+    return ResponseEntity.ok(checklistService.getGroupedByAddress());
   }
 
 /*

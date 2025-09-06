@@ -4,6 +4,9 @@ public record RecordUpdateRequest(
     String name,
     String address,
     Boolean monthly,
+	Integer deposit,
+	Integer  maintenanceFee,
+	Integer floorAreaSqm,
     Integer mining, //채광
     Integer water,
     Integer cleanliness,
