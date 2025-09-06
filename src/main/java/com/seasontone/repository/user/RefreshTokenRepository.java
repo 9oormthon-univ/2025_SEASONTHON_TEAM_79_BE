@@ -1,6 +1,6 @@
 package com.seasontone.repository.user;
 
-import com.seasontone.entity.user.RefreshToken;
+import com.seasontone.Entity.RefreshToken;
 import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

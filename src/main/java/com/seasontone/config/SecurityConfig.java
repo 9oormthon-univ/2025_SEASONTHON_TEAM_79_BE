@@ -46,8 +46,9 @@ public class SecurityConfig {
 								"/swagger-ui/**",
 								"/swagger-ui.html"
 						).permitAll()
-						.requestMatchers("/user/**").permitAll()
-						.anyRequest().permitAll()   // 개발 중 전체 오픈
+						.requestMatchers("/users/**").permitAll()
+						.anyRequest().authenticated()
+
 				)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);

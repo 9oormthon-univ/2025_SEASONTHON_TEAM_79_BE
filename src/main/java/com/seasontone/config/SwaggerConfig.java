@@ -13,7 +13,7 @@ public class SwaggerConfig {
 	@Bean
 	public OpenAPI customOpenAPI() {
 		return new OpenAPI()
-				.info(new Info().title("PointCareer").version("1.0.0"))
+				.info(new Info().title("seasonthon").version("1.0.0"))
 				.addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
 				.components(new Components()
 						.addSecuritySchemes("bearerAuth",

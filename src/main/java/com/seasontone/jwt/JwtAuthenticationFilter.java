@@ -1,6 +1,7 @@
 package com.seasontone.jwt;
 
-import com.seasontone.entity.user.User;
+
+import com.seasontone.Entity.User;
 import com.seasontone.repository.user.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,31 +23,37 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+  private final JwtUtil jwtUtil;
+  private final UserRepository userRepository;
 
-	private final JwtUtil jwtUtil;
-	private final UserRepository userRepository;
+  @Override
+  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+      FilterChain filterChain) throws IOException, ServletException {
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-									FilterChain filterChain) throws ServletException, IOException {
-		String findAccessToken = jwtUtil.resolveToken(request);
+    String token = jwtUtil.resolveToken(request);
+    log.debug("[JwtAuthFilter] path={}, hasToken={}", request.getRequestURI(), token != null);
 
-		if (!StringUtils.hasText(findAccessToken)) {
-			doFilter(request, response, filterChain);
-			return;
-		}
+    if (!StringUtils.hasText(token)) {
+      filterChain.doFilter(request, response);
+      return;
+    }
 
-		if (findAccessToken != null && jwtUtil.validateToken(findAccessToken)) {
-			User findUser = userRepository.findById(jwtUtil.getUserId(findAccessToken)).orElseThrow(NullPointerException::new);
+    try {
+      if (jwtUtil.validateToken(token)) {
+        Long uid = jwtUtil.getUserId(token);
+        log.debug("[JwtAuthFilter] token valid. userId={}", uid);
+        User user = userRepository.findById(uid)
+            .orElseThrow(() -> new NullPointerException("user not found: " + uid));
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+            user, "", List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        SecurityContextHolder.getContext().setAuthentication(auth);
+      } else {
+        log.debug("[JwtAuthFilter] validateToken=false");
+      }
+    } catch (Exception e) {
+      log.warn("[JwtAuthFilter] token invalid: {}", e.toString());
+    }
 
-			Authentication auth = getAuthentication(findUser);
-			SecurityContextHolder.getContext().setAuthentication(auth);
-		}
-		filterChain.doFilter(request, response);
-	}
-
-	public Authentication getAuthentication(User user) {
-		return new UsernamePasswordAuthenticationToken(user, "",
-				List.of(new SimpleGrantedAuthority("ROLE_USER")));
-	}
+    filterChain.doFilter(request, response);
+  }
 }
