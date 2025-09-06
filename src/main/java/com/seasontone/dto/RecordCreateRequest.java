@@ -7,6 +7,7 @@ public record RecordCreateRequest(
     Integer deposit,
     Integer monthlyRent,
     Integer maintenanceFee,
+	Integer floorAreaSqm,
 
     // 사진/음성은 추후 multipart로 분리. 지금은 생략/널 허용
     // char 타입은 사용하지 않음

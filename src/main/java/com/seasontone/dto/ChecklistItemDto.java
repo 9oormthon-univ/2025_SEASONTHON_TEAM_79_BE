@@ -5,7 +5,10 @@ import jakarta.validation.constraints.Size;
 public record ChecklistItemDto(
     @Size(max = 255) String name,
     @Size(max = 255) String address,
-    Boolean monthly,
+    Integer monthly,
+	Integer deposit,
+	Integer  maintenanceFee,
+	Integer floorAreaSqm,
     Integer mining,
     Integer water,
     Integer cleanliness,

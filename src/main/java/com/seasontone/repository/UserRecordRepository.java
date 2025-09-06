@@ -1,6 +1,7 @@
 package com.seasontone.repository;
 
 
+import com.seasontone.Entity.User;
 import com.seasontone.Entity.UserRecord;
 import java.util.List;
 import java.util.Optional;
@@ -19,4 +20,6 @@ public interface UserRecordRepository extends JpaRepository<UserRecord, Long> {
 
   Optional<UserRecord> findByIdAndUser_Id(Long id, Long userId);
   long deleteByIdAndUser_Id(Long id, Long userId);
+
+  List<UserRecord> findByUser (User user);
 }

@@ -1,188 +1,64 @@
-name: CICD
+name: Seasonthon CI/CD Pipeline
 
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
 
 permissions:
+  id-token: write
   contents: read
-
-env:
-  JAVA_VERSION: '24'
-  APP_IMAGE: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/live_server
-  HEALTH_ENDPOINT: env
-  BLUE_PORT: '8080'
-  GREEN_PORT: '8081'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      # 필요 시: application-secret.yml 복원 스텝은 Checkout 뒤, Build 전
-
-      - name: Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/checkout@v3
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: '21'
+          distribution: 'temurin'   # OpenJDK 기반, 가장 많이 씀
+          cache: gradle             # Gradle 캐시 적용
 
-      - name: Setup Gradle (cache)
-        uses: gradle/actions/setup-gradle@v3
+      - name: Set permission for Gradle
+        run: chmod +x ./gradlew
 
-      - name: Build with Gradle
+      - name: Build Spring Boot (without test)
+        run: ./gradlew clean build --exclude-task test
+
+      - name: DockerHub Login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_DEV_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+
+      - name: Build & Push Docker Image
         run: |
-          chmod +x ./gradlew
-          ./gradlew clean build -x test
-
-      - name: Docker login (Docker Hub)
-        uses: docker/login-action@v3
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # ✅ buildx를 명시적으로 셋업
-      - name: Setup Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          driver-opts: image=moby/buildkit:latest
-          buildkitd-flags: --debug
-
-      # ✅ 1차 시도
-      - name: Build & Push image (attempt 1)
-        id: buildpush1
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          platforms: linux/amd64
-          pull: true
-          provenance: false
-          sbom: false
-          cache-from: type=registry,ref=${{ env.APP_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.APP_IMAGE }}:buildcache,mode=max
-          labels: |
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.source=${{ github.repository }}
-          tags: |
-            ${{ env.APP_IMAGE }}:${{ github.sha }}
-            ${{ env.APP_IMAGE }}:latest
-
-      # ✅ 실패하면 동일 옵션으로 1회 재시도
-      - name: Build & Push image (retry on failure)
-        if: failure() && steps.buildpush1.outcome == 'failure'
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          platforms: linux/amd64
-          pull: true
-          provenance: false
-          sbom: false
-          cache-from: type=registry,ref=${{ env.APP_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.APP_IMAGE }}:buildcache,mode=max
-          tags: |
-            ${{ env.APP_IMAGE }}:${{ github.sha }}
-            ${{ env.APP_IMAGE }}:latest
-
+          docker build -t ${{ secrets.DOCKERHUB_DEV_USERNAME }}/point-career:latest .
+          docker push ${{ secrets.DOCKERHUB_DEV_USERNAME }}/point-career:latest
 
   deploy:
-    needs: build
     runs-on: ubuntu-latest
+    needs: build
     steps:
-      # 여기 수정: curl 실패(Exit 7)여도 스텝이 죽지 않도록 가드
-      - name: Determine current upstream (blue/green) via Nginx (port 80)
-        id: pick
-        shell: bash
-        run: |
-          set -e
-          # LIVE_SERVER_IP는 '54.x.x.x' 같은 퍼블릭 IP(스킴/슬래시 없음)여야 합니다.
-          IP="${{ secrets.LIVE_SERVER_IP }}"
-
-          # curl 실패를 흡수: set +e로 임시 해제, 끝나면 다시 set -e
-          set +e
-          STATUS=$(curl --max-time 3 --connect-timeout 2 -s -o /dev/null -w "%{http_code}" "http://${IP}/${{ env.HEALTH_ENDPOINT }}")
-          RC=$?
-          set -e
-
-          if [ $RC -ne 0 ]; then
-            echo "curl failed with rc=$RC (treat as unreachable)"
-            STATUS=000
-          fi
-          echo "STATUS=$STATUS"
-
-          if [ "$STATUS" = "200" ]; then
-            set +e
-            CURRENT_UPSTREAM=$(curl --max-time 3 --connect-timeout 2 -s "http://${IP}/${{ env.HEALTH_ENDPOINT }}")
-            RC=$?
-            set -e
-            if [ $RC -ne 0 ] || [ -z "$CURRENT_UPSTREAM" ]; then
-              CURRENT_UPSTREAM=green
-            fi
-          else
-            CURRENT_UPSTREAM=green
-          fi
-
-          echo "CURRENT_UPSTREAM=$CURRENT_UPSTREAM" >> $GITHUB_ENV
-          if [ "$CURRENT_UPSTREAM" = "blue" ]; then
-            echo "CURRENT_PORT=${{ env.BLUE_PORT }}"   >> $GITHUB_ENV
-            echo "TARGET_UPSTREAM=green"               >> $GITHUB_ENV
-            echo "TARGET_PORT=${{ env.GREEN_PORT }}"   >> $GITHUB_ENV
-          else
-            echo "CURRENT_PORT=${{ env.GREEN_PORT }}"  >> $GITHUB_ENV
-            echo "TARGET_UPSTREAM=blue"                >> $GITHUB_ENV
-            echo "TARGET_PORT=${{ env.BLUE_PORT }}"    >> $GITHUB_ENV
-          fi
-          echo "::notice::Will deploy to $TARGET_UPSTREAM on port $TARGET_PORT"
-
-      - name: Deploy target stack via SSH (docker compose up)
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.0.2
         with:
-          host: ${{ secrets.LIVE_SERVER_IP }}
-          username: ec2-user
+          role-to-assume: ${{ secrets.AWS_ACCESS_ROLE_NAME }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
+          port: ${{ secrets.EC2_SSH_PORT }}
+          timeout: 60s
           script: |
-            set -e
-            docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
-            docker pull "${{ env.APP_IMAGE }}:latest"
-            docker compose -f "docker-compose-${{ env.TARGET_UPSTREAM }}.yml" up -d
-            docker image prune -f
-
-      # 필요 시: SG가 8080/8081 닫혀 있으면 이 헬스체크는 실패합니다.
-      # 그런 경우 Nginx 경유(http://IP/env)로 바꾸거나 SG 임시오픈 하세요.
-      - name: Health check new color directly (bypass Nginx)
-        uses: jtalk/url-health-check-action@v3
-        with:
-          url: http://${{ secrets.LIVE_SERVER_IP }}:${{ env.TARGET_PORT }}/${{ env.HEALTH_ENDPOINT }}
-          max-attempts: 10
-          retry-delay: 6s
-
-      - name: Point Nginx to new upstream and reload
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.LIVE_SERVER_IP }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
-          script: |
-            set -e
-            docker exec -i nginxserver bash -lc 'echo "set \\$service_url ${{ env.TARGET_UPSTREAM }};" > /etc/nginx/conf.d/service-env.inc && nginx -t && nginx -s reload'
-
-      - name: Stop previous color
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.LIVE_SERVER_IP }}
-          username: ec2-user
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script_stop: true
-          script: |
-            set -e
-            docker stop "${{ env.CURRENT_UPSTREAM }}" || true
-            docker rm   "${{ env.CURRENT_UPSTREAM }}" || true
+            sudo docker login -u ${{ secrets.DOCKERHUB_DEV_USERNAME }} -p ${{ secrets.DOCKERHUB_DEV_TOKEN }}
+            sudo docker-compose stop
+            sudo docker-compose rm -f
+            sudo docker rmi ${{ secrets.DOCKERHUB_DEV_USERNAME }}/point-career:latest
+            sudo docker-compose up -d
