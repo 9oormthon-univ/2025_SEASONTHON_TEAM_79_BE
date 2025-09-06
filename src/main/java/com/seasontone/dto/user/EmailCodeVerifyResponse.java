@@ -5,5 +5,5 @@ import lombok.Setter;
 
 @Getter @Setter
 public class EmailCodeVerifyResponse {
-    private Boolean is_email_verified;
+    private Boolean isEmailVerified;
 }

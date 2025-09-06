@@ -1,10 +1,19 @@
 package com.seasontone.entity.user;
 
+import com.seasontone.entity.BaseEntity;
+import com.seasontone.entity.checklist.Checklist;
+import com.seasontone.entity.checklist.UserRecord;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,7 +27,8 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-public class User {
+@Table(name = "users")
+public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -35,4 +45,12 @@ public class User {
 
     private Boolean emailVerified; //이메일 인증 여부, 기본값은 false
 
+    private String region;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserRecord> userRecords = new ArrayList<>();
+
+    public void updateRegion(String region) {
+        this.region = region;
+    }
 }
