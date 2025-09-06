@@ -18,6 +18,8 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 
 @Entity @Getter @Setter
@@ -52,6 +54,22 @@ public class RecordVoiceNote {
   @Lob @Column(columnDefinition = "LONGTEXT")
   private String summary;        // (추후 GPT 요약)
 
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt;
+
+  @UpdateTimestamp
+  @Column(name = "updated_at")
   private Instant updatedAt;
+
+  @PrePersist
+  void prePersist() {
+    if (createdAt == null) createdAt = Instant.now();
+    if (updatedAt == null) updatedAt = createdAt;
+  }
+
+  @PreUpdate
+  void preUpdate() {
+    updatedAt = Instant.now();
+  }
 }

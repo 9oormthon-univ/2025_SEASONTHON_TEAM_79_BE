@@ -18,7 +18,7 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class VoiceNoteService {
-/*
+
   private final UserRecordRepository recordRepo;
   private final RecordVoiceNoteRepository voiceRepo;
   private final WhisperClient whisper;     // 훅(나중에 실제 구현)
@@ -101,5 +101,4 @@ public class VoiceNoteService {
     if (r.getItems() == null) return;
     voiceRepo.deleteByItems_Id(r.getItems().getId());
   }
-  */
 }

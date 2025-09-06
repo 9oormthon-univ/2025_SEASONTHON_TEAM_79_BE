@@ -1,6 +1,5 @@
 package com.seasontone.config;
 
-import com.seasontone.jwt.JwtAuthenticationFilter;
 import com.seasontone.jwt.JwtExceptionFilter;
 import com.seasontone.security.XDevUserIdAuthFilter;
 import lombok.RequiredArgsConstructor;
