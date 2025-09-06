@@ -11,7 +11,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
-import java.security.SignatureException;
 import java.time.Duration;
 import java.util.Date;
 import javax.crypto.SecretKey;
