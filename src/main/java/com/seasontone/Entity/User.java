@@ -28,7 +28,7 @@ public class User {
   private Long id; //회원id pk
 
   @Column(nullable = false, length = 10)
-  private String name; //회원 이름
+  private String username; //회원 이름
 
   @Column(nullable = false, length = 100, unique = true)
   private String email; //회원 이메일, 유니크 제약조건
@@ -36,6 +36,11 @@ public class User {
   @Column(nullable = false, length = 100)
   private String password; //회원 비밀번호, 암호화 저장
 
+  private String region;
+
   private Boolean emailVerified; //이메일 인증 여부, 기본값은 false
 
+  public void updateRegion(String region) {
+    this.region = region;
+  }
 }

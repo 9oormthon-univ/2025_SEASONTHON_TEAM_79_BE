@@ -1,3 +1,4 @@
+/*
 package com.seasontone.controller;
 
 import java.util.HashMap;
@@ -34,4 +35,4 @@ public class serverCheckController {
     return ResponseEntity.ok(env);
   }
 
-}
+}*/

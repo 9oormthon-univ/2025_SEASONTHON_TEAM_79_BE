@@ -14,7 +14,7 @@ import com.seasontone.repository.ListingRepository;
 import com.seasontone.repository.RecordPhotoRepository;
 import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.UserRecordRepository;
-import com.seasontone.repository.UserRepository;
+import com.seasontone.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

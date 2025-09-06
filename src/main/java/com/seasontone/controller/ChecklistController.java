@@ -2,12 +2,10 @@ package com.seasontone.controller;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
-import com.seasontone.Entity.UserRecord;
+import com.seasontone.Entity.User;
 import com.seasontone.dto.ChecklistCreateRequest;
-import com.seasontone.dto.ChecklistItemDto;
 import com.seasontone.dto.ChecklistUpdateRequest;
 import com.seasontone.dto.response.ChecklistResponse;
-import com.seasontone.security.AuthUser;
 import com.seasontone.service.ChecklistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,18 +61,18 @@ public class ChecklistController {
       consumes = MediaType.APPLICATION_JSON_VALUE,
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ChecklistResponse updateAll(@PathVariable Long checkId,
-      @AuthenticationPrincipal AuthUser me,
+      @AuthenticationPrincipal User me,
       @RequestBody @Valid ChecklistUpdateRequest req) {
     if (me == null) throw new AccessDeniedException("Login required.");
-    return checklistService.updateAllOwned(checkId, me.id(), req);
+    return checklistService.updateAllOwned(checkId, me.getId(), req);
   }
 
   //삭제
   @DeleteMapping("/checklists/{checkId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable Long checkId, @AuthenticationPrincipal AuthUser me) {
+  public void delete(@PathVariable Long checkId, @AuthenticationPrincipal User me) {
     if (me == null) throw new AccessDeniedException("Login required.");
-    checklistService.deleteOwned(checkId, me.id());
+    checklistService.deleteOwned(checkId, me.getId());
   }
 
 /*
