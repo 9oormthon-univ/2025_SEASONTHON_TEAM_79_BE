@@ -1,6 +1,6 @@
 package com.seasontone.repository;
 
-import com.seasontone.Entity.ChecklistItems;
+import com.seasontone.entity.ChecklistItems;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

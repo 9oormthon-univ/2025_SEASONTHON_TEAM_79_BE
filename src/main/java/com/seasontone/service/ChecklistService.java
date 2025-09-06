@@ -1,9 +1,6 @@
 package com.seasontone.service;
 
-import com.seasontone.Entity.ChecklistItems;
-import com.seasontone.Entity.Listing;
-import com.seasontone.Entity.User;
-import com.seasontone.Entity.UserRecord;
+
 import com.seasontone.dto.ChecklistCreateRequest;
 import com.seasontone.dto.ChecklistItemDto;
 import com.seasontone.dto.ChecklistUpdateRequest;
@@ -12,6 +9,10 @@ import com.seasontone.dto.VoiceNoteDto;
 import com.seasontone.dto.response.ChecklistGroupResponse;
 import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.dto.response.MyChecklistResponse;
+import com.seasontone.entity.ChecklistItems;
+import com.seasontone.entity.Listing;
+import com.seasontone.entity.UserRecord;
+import com.seasontone.entity.user.User;
 import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.ListingRepository;
 import com.seasontone.repository.RecordPhotoRepository;

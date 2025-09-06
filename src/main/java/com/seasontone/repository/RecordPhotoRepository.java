@@ -1,7 +1,7 @@
 package com.seasontone.repository;
 
-import com.seasontone.Entity.RecordPhoto;
 import com.seasontone.dto.PhotoMetaProjection;
+import com.seasontone.entity.RecordPhoto;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -1,14 +1,9 @@
 package com.seasontone.controller;
 
-import com.seasontone.Entity.ChecklistItems;
-import com.seasontone.Entity.RecordPhoto;
-import com.seasontone.Entity.User;
-import com.seasontone.Entity.UserRecord;
-import com.seasontone.dto.PhotoDto;
-import com.seasontone.dto.response.PhotoResponse;
-import com.seasontone.repository.RecordPhotoRepository;
+import com.seasontone.entity.ChecklistItems;
+import com.seasontone.entity.RecordPhoto;
+import com.seasontone.entity.UserRecord;
 import com.seasontone.repository.UserRecordRepository;
-import com.seasontone.service.ChecklistPhotoService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -16,9 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;

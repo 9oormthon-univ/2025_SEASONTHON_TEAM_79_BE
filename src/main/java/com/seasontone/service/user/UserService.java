@@ -7,8 +7,11 @@ import com.seasontone.dto.user.EmailCodeVerifyResponse;
 import com.seasontone.dto.user.LoginRequest;
 import com.seasontone.dto.user.LoginResponse;
 import com.seasontone.dto.user.LoginResult;
+import com.seasontone.dto.user.ProfilesResponse;
 import com.seasontone.dto.user.RegisterRequest;
 import com.seasontone.dto.user.RegisterResponse;
+import com.seasontone.dto.user.UpdateProfilesRequest;
+import com.seasontone.dto.user.UpdateProfilesResponse;
 import com.seasontone.entity.user.EmailCode;
 import com.seasontone.entity.user.RefreshToken;
 import com.seasontone.entity.user.User;
@@ -54,15 +57,16 @@ public class UserService {
 		User user = User.builder()
 				.email(request.getEmail())
 				.password(encodedPassword)
-				.name(request.getName())
+				.username(request.getName())
 				.emailVerified(false)
+				.region(request.getRegion())
 				.build();
 		// 저장
 		userRepository.save(user);
 
 		return RegisterResponse.builder()
-				.is_email_verified(user.getEmailVerified())
-				.user_id(user.getId())
+				.isEmailVerified(user.getEmailVerified())
+				.userId(user.getId())
 				.build();
 	}
 
@@ -100,7 +104,7 @@ public class UserService {
 		emailCodeRepository.deleteById(request.getEmail());
 
 		EmailCodeVerifyResponse response = new EmailCodeVerifyResponse();
-		response.setIs_email_verified(true);
+		response.setIsEmailVerified(true);
 		return response;
 	}
 
@@ -115,14 +119,14 @@ public class UserService {
 			throw new IllegalArgumentException("유효하지 않은 비밀번호입니다.");
 		}
 
-		String accessToken = jwtUtil.generateAccessToken(findUser.getId(), findUser.getName());
-		String refreshToken = jwtUtil.generateRefreshToken(findUser.getId(), findUser.getName());
+		String accessToken = jwtUtil.generateAccessToken(findUser.getId(), findUser.getUsername());
+		String refreshToken = jwtUtil.generateRefreshToken(findUser.getId(), findUser.getUsername());
 
 		RefreshToken addRefreshToken = new RefreshToken(findUser.getId(), refreshToken, refreshTokenExpirationTime);
 		refreshTokenRepository.save(addRefreshToken);
 
 		LoginResponse loginResponse = LoginResponse.builder()
-				.user_id(findUser.getId())
+				.userId(findUser.getId())
 				.build();
 
 		return LoginResult.builder()
@@ -131,4 +135,26 @@ public class UserService {
 				.loginResponse(loginResponse)
 				.build();
 	}
+
+	public ProfilesResponse getProfiles(User user) {
+		User findUser = userRepository.findById(user.getId()).orElseThrow(()->new NullPointerException("존재하지 않는 회원입니다."));
+
+		return ProfilesResponse.builder()
+				.userId(findUser.getId())
+				.name(findUser.getUsername())
+				.region(findUser.getRegion())
+				.build();
+	}
+
+	@Transactional
+	public UpdateProfilesResponse updateProfiles(UpdateProfilesRequest request, User user) {
+		User findUser = userRepository.findById(user.getId()).orElseThrow(()->new NullPointerException("존재하지 않는 회원입니다."));
+
+		findUser.updateRegion(request.getRegion());
+
+		return UpdateProfilesResponse.builder()
+				.userId(findUser.getId())
+				.build();
+	}
 }
+

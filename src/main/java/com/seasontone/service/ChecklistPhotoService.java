@@ -1,10 +1,9 @@
 package com.seasontone.service;
 
-import com.seasontone.Entity.ChecklistItems;
-import com.seasontone.Entity.RecordPhoto;
-import com.seasontone.Entity.UserRecord;
 import com.seasontone.dto.PhotoDto;
 import com.seasontone.dto.PhotoMetaProjection;
+import com.seasontone.entity.RecordPhoto;
+import com.seasontone.entity.UserRecord;
 import com.seasontone.repository.RecordPhotoRepository;
 import com.seasontone.repository.UserRecordRepository;
 import jakarta.persistence.EntityNotFoundException;

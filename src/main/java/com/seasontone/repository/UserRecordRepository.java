@@ -1,8 +1,8 @@
 package com.seasontone.repository;
 
 
-import com.seasontone.Entity.User;
-import com.seasontone.Entity.UserRecord;
+import com.seasontone.entity.UserRecord;
+import com.seasontone.entity.user.User;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;

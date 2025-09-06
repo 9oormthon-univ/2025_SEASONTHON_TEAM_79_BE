@@ -1,5 +1,6 @@
-package com.seasontone.Entity;
+package com.seasontone.entity;
 
+import com.seasontone.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
