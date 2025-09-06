@@ -8,6 +8,9 @@ import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.UserRecordRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,13 +21,13 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class VoiceNoteService {
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final UserRecordRepository recordRepo;
   private final RecordVoiceNoteRepository voiceRepo;
-  private final WhisperClient whisper;     // 훅(나중에 실제 구현)
-  private final TextSummarizer summarizer; // 훅(나중에 실제 구현)
+   private final WhisperClient whisper;     // ← 이제 실제 구현(OpenAiWhisperClient)이 주입됨
+  private final TextSummarizer summarizer; // ← OpenAiTextSummarizer 주입
 
-  // 음성 업로드(교체) → BLOB 저장 + 전사/요약 훅
   @Transactional
   public VoiceNoteDto uploadReplace(Long checkId, Long userId, MultipartFile file, Integer durationSec) throws IOException {
     if (file == null || file.isEmpty()) throw new IllegalArgumentException("file is empty");
@@ -35,7 +38,6 @@ public class VoiceNoteService {
     if (r.getItems() == null) r.attachBlankItems();
     ChecklistItems items = r.getItems();
 
-    // 기존 음성 있으면 삭제(교체)
     voiceRepo.findByItems_Id(items.getId()).ifPresent(voiceRepo::delete);
 
     RecordVoiceNote v = new RecordVoiceNote();
@@ -46,23 +48,22 @@ public class VoiceNoteService {
     v.setDurationSec(durationSec);
     v.setData(file.getBytes());
 
-    // Whisper/요약(목업) — 실패해도 저장은 진행
     try {
       String transcript = whisper.transcribeBytes(file.getBytes(), v.getContentType());
       String summary = summarizer.summarize(transcript);
       v.setTranscript(transcript);
       v.setSummary(summary);
 
-      // memo에 요약 반영 (없으면 덮어쓰기)
       String newMemo = (items.getMemo()==null || items.getMemo().isBlank())
           ? summary
           : items.getMemo() + "\n\n[음성 요약]\n" + summary;
       items.setMemo(newMemo);
 
-    } catch (Exception ignore) {}
+    } catch (Exception e) {
+      log.error("[VOICE] transcribe/summarize failed", e); // ★ 로그로 원인 확인
+    }
 
     RecordVoiceNote saved = voiceRepo.save(v);
-
     return new VoiceNoteDto(
         saved.getFilename(), saved.getContentType(), saved.getSize(), saved.getDurationSec(),
         saved.getTranscript(), saved.getSummary(), saved.getCreatedAt(), saved.getUpdatedAt(),

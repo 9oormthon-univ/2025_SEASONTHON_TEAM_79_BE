@@ -33,10 +33,11 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'com.openai:openai-java:3.4.1'
+	implementation 'org.springframework.boot:spring-boot-starter-web'   // RestClient 포함
+	implementation 'org.springframework.boot:spring-boot-starter-validation' //
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor' //
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
-	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
-	implementation 'io.github.openfeign.form:feign-form-spring:3.8.0'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'

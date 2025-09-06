@@ -1,9 +1,6 @@
 package com.seasontone.controller;
 
-import com.seasontone.Entity.RecordVoiceNote;
-import com.seasontone.Entity.User;
 import com.seasontone.dto.VoiceNoteDto;
-import com.seasontone.service.ChecklistAudioService;
 import com.seasontone.service.VoiceNoteService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
