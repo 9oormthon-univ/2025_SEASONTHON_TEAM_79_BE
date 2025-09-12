@@ -12,7 +12,7 @@ import com.seasontone.dto.user.RegisterRequest;
 import com.seasontone.dto.user.RegisterResponse;
 import com.seasontone.dto.user.UpdateProfilesRequest;
 import com.seasontone.dto.user.UpdateProfilesResponse;
-import com.seasontone.entity.user.User;
+import com.seasontone.domain.users.User;
 import com.seasontone.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

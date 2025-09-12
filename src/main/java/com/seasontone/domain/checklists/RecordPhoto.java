@@ -1,4 +1,4 @@
-package com.seasontone.entity;
+package com.seasontone.domain.checklists;
 
 import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
@@ -10,7 +10,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import lombok.Getter;
@@ -39,7 +38,7 @@ public class RecordPhoto {
 
   @Lob @Basic(fetch = FetchType.LAZY)
   @Column(name = "data", nullable = false, columnDefinition = "LONGBLOB")
-  private byte[] data;               // ★ 변환 없이 바이트 그대로
+  private byte[] data;               //변환 없이 바이트 그대로
 
   @Column(length = 255)
   private String caption;

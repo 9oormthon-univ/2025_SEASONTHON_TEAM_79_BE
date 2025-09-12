@@ -1,7 +1,7 @@
 package com.seasontone.jwt;
 
 
-import com.seasontone.entity.user.User;
+import com.seasontone.domain.users.User;
 import com.seasontone.repository.user.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
