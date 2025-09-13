@@ -1,6 +1,6 @@
 package com.seasontone.repository.user;
 
-import com.seasontone.entity.user.User;
+import com.seasontone.domain.users.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

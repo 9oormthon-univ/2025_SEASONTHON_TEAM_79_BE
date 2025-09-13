@@ -1,4 +1,4 @@
-package com.seasontone.dto;
+package com.seasontone.dto.checklists;
 
 public record RecordCreateRequest(
     // 매물 기본

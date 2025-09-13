@@ -1,6 +1,5 @@
-package com.seasontone.dto;
+package com.seasontone.dto.checklists;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

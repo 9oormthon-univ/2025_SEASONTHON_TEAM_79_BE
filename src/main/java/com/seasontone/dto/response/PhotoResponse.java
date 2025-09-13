@@ -1,6 +1,6 @@
 package com.seasontone.dto.response;
 
-import com.seasontone.entity.RecordPhoto;
+import com.seasontone.domain.checklists.RecordPhoto;
 import java.time.Instant;
 import lombok.Builder;
 import lombok.Getter;

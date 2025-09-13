@@ -1,6 +1,6 @@
 package com.seasontone.repository;
 
-import com.seasontone.entity.RecordVoiceNote;
+import com.seasontone.domain.checklists.RecordVoiceNote;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

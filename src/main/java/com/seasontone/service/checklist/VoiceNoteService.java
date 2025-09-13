@@ -1,16 +1,17 @@
-package com.seasontone.service;
+package com.seasontone.service.checklist;
 
-import com.seasontone.dto.VoiceNoteDto;
-import com.seasontone.entity.ChecklistItems;
-import com.seasontone.entity.RecordVoiceNote;
-import com.seasontone.entity.UserRecord;
+import com.seasontone.dto.voice.VoiceNoteDto;
+import com.seasontone.domain.checklists.ChecklistItems;
+import com.seasontone.domain.checklists.RecordVoiceNote;
+import com.seasontone.domain.checklists.UserRecord;
 import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.UserRecordRepository;
+import com.seasontone.service.TextSummarizer;
+import com.seasontone.service.WhisperClient;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

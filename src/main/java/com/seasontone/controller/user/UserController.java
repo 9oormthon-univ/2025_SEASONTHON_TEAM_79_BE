@@ -12,13 +12,14 @@ import com.seasontone.dto.user.RegisterRequest;
 import com.seasontone.dto.user.RegisterResponse;
 import com.seasontone.dto.user.UpdateProfilesRequest;
 import com.seasontone.dto.user.UpdateProfilesResponse;
-import com.seasontone.entity.user.User;
+import com.seasontone.domain.users.User;
 import com.seasontone.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -79,5 +80,12 @@ public class UserController {
 	public ResponseEntity<UpdateProfilesResponse> updateProfiles(@RequestBody UpdateProfilesRequest request, @AuthenticationPrincipal User user) {
 		return ResponseEntity.ok(userService.updateProfiles(request, user));
 	}
+
+	@DeleteMapping("/profiles")
+	public ResponseEntity<String> deleteProfiles(@AuthenticationPrincipal User user) {
+		userService.deleteProfiles(user);
+		return ResponseEntity.status(HttpStatus.OK).body("회원 탈퇴 완료");
+	}
+
 }
 

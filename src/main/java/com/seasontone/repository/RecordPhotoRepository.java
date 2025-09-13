@@ -1,12 +1,11 @@
 package com.seasontone.repository;
 
-import com.seasontone.dto.PhotoMetaProjection;
-import com.seasontone.entity.RecordPhoto;
+import com.seasontone.dto.photo.PhotoMetaProjection;
+import com.seasontone.domain.checklists.RecordPhoto;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.time.Instant;
 import java.util.List;
 
 public interface RecordPhotoRepository extends JpaRepository<RecordPhoto, Long> {

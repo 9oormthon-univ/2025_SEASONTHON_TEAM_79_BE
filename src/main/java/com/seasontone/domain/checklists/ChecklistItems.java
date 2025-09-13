@@ -1,19 +1,39 @@
-package com.seasontone.entity;
+package com.seasontone.domain.checklists;
 
-
-import jakarta.persistence.*;
+import com.seasontone.domain.BaseEntity;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "checklist_items")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class ChecklistItems extends BaseEntity{
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ChecklistItems extends BaseEntity {
 
-  @Id @Column(name = "check_id")
+  @Id
+  @Column(name = "check_id")
   private Long id;
 
   @OneToOne(fetch = FetchType.LAZY)

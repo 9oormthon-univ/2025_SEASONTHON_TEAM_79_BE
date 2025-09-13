@@ -1,4 +1,4 @@
-package com.seasontone.dto;
+package com.seasontone.dto.voice;
 
 import java.time.Instant;
 

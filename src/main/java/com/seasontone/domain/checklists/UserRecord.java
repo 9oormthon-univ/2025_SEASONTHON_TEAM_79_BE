@@ -1,6 +1,6 @@
-package com.seasontone.entity;
+package com.seasontone.domain.checklists;
 
-import com.seasontone.entity.user.User;
+import com.seasontone.domain.users.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

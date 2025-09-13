@@ -1,8 +1,8 @@
 package com.seasontone.controller;
 
-import com.seasontone.entity.ChecklistItems;
-import com.seasontone.entity.RecordPhoto;
-import com.seasontone.entity.UserRecord;
+import com.seasontone.domain.checklists.ChecklistItems;
+import com.seasontone.domain.checklists.RecordPhoto;
+import com.seasontone.domain.checklists.UserRecord;
 import com.seasontone.repository.UserRecordRepository;
 import java.io.IOException;
 import java.util.ArrayList;

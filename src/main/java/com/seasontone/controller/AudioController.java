@@ -1,7 +1,7 @@
 package com.seasontone.controller;
 
-import com.seasontone.dto.VoiceNoteDto;
-import com.seasontone.service.VoiceNoteService;
+import com.seasontone.dto.voice.VoiceNoteDto;
+import com.seasontone.service.checklist.VoiceNoteService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;

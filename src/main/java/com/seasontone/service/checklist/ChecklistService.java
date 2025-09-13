@@ -1,18 +1,18 @@
-package com.seasontone.service;
+package com.seasontone.service.checklist;
 
 
-import com.seasontone.dto.ChecklistCreateRequest;
-import com.seasontone.dto.ChecklistItemDto;
-import com.seasontone.dto.ChecklistUpdateRequest;
-import com.seasontone.dto.PhotoDto;
-import com.seasontone.dto.VoiceNoteDto;
+import com.seasontone.dto.checklists.ChecklistCreateRequest;
+import com.seasontone.dto.checklists.ChecklistItemDto;
+import com.seasontone.dto.checklists.ChecklistUpdateRequest;
+import com.seasontone.dto.photo.PhotoDto;
+import com.seasontone.dto.voice.VoiceNoteDto;
 import com.seasontone.dto.response.ChecklistGroupResponse;
 import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.dto.response.MyChecklistResponse;
-import com.seasontone.entity.ChecklistItems;
-import com.seasontone.entity.Listing;
-import com.seasontone.entity.UserRecord;
-import com.seasontone.entity.user.User;
+import com.seasontone.domain.checklists.ChecklistItems;
+import com.seasontone.domain.checklists.Listing;
+import com.seasontone.domain.checklists.UserRecord;
+import com.seasontone.domain.users.User;
 import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.ListingRepository;
 import com.seasontone.repository.RecordPhotoRepository;
@@ -42,7 +42,7 @@ public class ChecklistService {
   private final RecordVoiceNoteRepository voiceRepo;
   private final ChecklistItemsRepository checklistItemsRepository;
 
-  /** POST /api/checklists */
+  // POST /api/checklists
   @Transactional
   public ChecklistResponse create(ChecklistCreateRequest req) {
     // 1) 작성자
@@ -72,14 +72,14 @@ public class ChecklistService {
     return toResponse(saved);
   }
 
-  /** GET /api/checklists/{checkId} */
+  //** GET /api/checklists/{checkId}
   public ChecklistResponse get(Long checkId) {
     UserRecord r = userRecordRepository.findById(checkId)
         .orElseThrow(() -> new EntityNotFoundException("Checklist not found: " + checkId));
     return toResponse(r);
   }
 
-  /** GET /api/users/{userId}/checklists */
+  //** GET /api/users/{userId}/checklists
   public Page<ChecklistResponse> pageByUser(Long userId, Pageable pageable) {
     return userRecordRepository.findByUser_Id(userId, pageable)
         .map(this::toResponse);
@@ -115,7 +115,7 @@ public class ChecklistService {
     return toResponse(r);
   }
 
-  /** null 포함 전체 교체 */
+  //null 포함 전체 교체
   private void replaceItems(ChecklistItems items, ChecklistItemDto dto) {
     items.setName(dto.name());
     items.setAddress(dto.address());

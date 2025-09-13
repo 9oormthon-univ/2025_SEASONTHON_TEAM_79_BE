@@ -1,4 +1,4 @@
-package com.seasontone.entity;
+package com.seasontone.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

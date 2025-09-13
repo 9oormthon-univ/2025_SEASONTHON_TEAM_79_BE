@@ -2,13 +2,13 @@ package com.seasontone.controller;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
-import com.seasontone.dto.ChecklistCreateRequest;
-import com.seasontone.dto.ChecklistUpdateRequest;
+import com.seasontone.dto.checklists.ChecklistCreateRequest;
+import com.seasontone.dto.checklists.ChecklistUpdateRequest;
 import com.seasontone.dto.response.ChecklistGroupResponse;
 import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.dto.response.MyChecklistResponse;
-import com.seasontone.entity.user.User;
-import com.seasontone.service.ChecklistService;
+import com.seasontone.domain.users.User;
+import com.seasontone.service.checklist.ChecklistService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

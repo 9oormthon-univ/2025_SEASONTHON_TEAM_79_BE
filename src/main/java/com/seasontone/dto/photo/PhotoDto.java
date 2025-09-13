@@ -1,4 +1,4 @@
-package com.seasontone.dto;
+package com.seasontone.dto.photo;
 
 import java.time.Instant;
 

@@ -1,4 +1,4 @@
-package com.seasontone.entity.user;
+package com.seasontone.domain.users;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
