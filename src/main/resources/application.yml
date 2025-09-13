@@ -47,10 +47,3 @@ spring:
       max-file-size: 30MB
       max-request-size: 60MB
 
----
-openai:
-  api-key: ${OPENAI_API_KEY}         # 환경변수에서 주입 권장
-  base-url: https://api.openai.com    # 기본값
-  transcribe-model: whisper-1 # 또는 whisper-1
-  summarize-model: gpt-5o-nano        # 요약용(저렴/빠름)
-  language: ko                        # 입력 언어 힌트(선택)

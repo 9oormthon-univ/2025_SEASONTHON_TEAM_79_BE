@@ -28,7 +28,7 @@ public class RecordVoiceNote {
   private Long id;                                   // Items PK 공유
 
   @OneToOne(fetch = FetchType.LAZY, optional = false)
-  @MapsId                                           // ★ PK 공유
+  @MapsId                                           // PK 공유
   @JoinColumn(name = "items_id")
   private ChecklistItems items;
 

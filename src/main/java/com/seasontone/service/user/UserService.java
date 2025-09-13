@@ -156,5 +156,11 @@ public class UserService {
 				.userId(findUser.getId())
 				.build();
 	}
+
+	public void deleteProfiles(User user) {
+		User findUser = userRepository.findById(user.getId()).orElseThrow(()->new NullPointerException("존재하지 않는 회원입니다."));
+
+		userRepository.delete(findUser);
+	}
 }
 
