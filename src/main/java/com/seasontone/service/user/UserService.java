@@ -12,9 +12,9 @@ import com.seasontone.dto.user.RegisterRequest;
 import com.seasontone.dto.user.RegisterResponse;
 import com.seasontone.dto.user.UpdateProfilesRequest;
 import com.seasontone.dto.user.UpdateProfilesResponse;
-import com.seasontone.entity.user.EmailCode;
-import com.seasontone.entity.user.RefreshToken;
-import com.seasontone.entity.user.User;
+import com.seasontone.domain.users.EmailCode;
+import com.seasontone.domain.users.RefreshToken;
+import com.seasontone.domain.users.User;
 import com.seasontone.jwt.JwtUtil;
 import com.seasontone.repository.user.EmailCodeRepository;
 import com.seasontone.repository.user.RefreshTokenRepository;
@@ -155,6 +155,12 @@ public class UserService {
 		return UpdateProfilesResponse.builder()
 				.userId(findUser.getId())
 				.build();
+	}
+
+	public void deleteProfiles(User user) {
+		User findUser = userRepository.findById(user.getId()).orElseThrow(()->new NullPointerException("존재하지 않는 회원입니다."));
+
+		userRepository.delete(findUser);
 	}
 }
 

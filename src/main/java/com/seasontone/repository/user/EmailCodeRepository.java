@@ -1,7 +1,7 @@
 package com.seasontone.repository.user;
 
 
-import com.seasontone.entity.user.EmailCode;
+import com.seasontone.domain.users.EmailCode;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 @Repository

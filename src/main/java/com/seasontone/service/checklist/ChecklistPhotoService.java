@@ -1,9 +1,9 @@
-package com.seasontone.service;
+package com.seasontone.service.checklist;
 
-import com.seasontone.dto.PhotoDto;
-import com.seasontone.dto.PhotoMetaProjection;
-import com.seasontone.entity.RecordPhoto;
-import com.seasontone.entity.UserRecord;
+import com.seasontone.dto.photo.PhotoDto;
+import com.seasontone.dto.photo.PhotoMetaProjection;
+import com.seasontone.domain.checklists.RecordPhoto;
+import com.seasontone.domain.checklists.UserRecord;
 import com.seasontone.repository.RecordPhotoRepository;
 import com.seasontone.repository.UserRecordRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @Slf4j
