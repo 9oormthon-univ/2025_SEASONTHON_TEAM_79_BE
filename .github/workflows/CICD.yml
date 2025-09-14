@@ -35,8 +35,8 @@ jobs:
 
       - name: Build & Push Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_DEV_USERNAME }}/point-career:latest .
-          docker push ${{ secrets.DOCKERHUB_DEV_USERNAME }}/point-career:latest
+          docker build -t ${{ secrets.DOCKERHUB_DEV_USERNAME }}/seasonthon:latest .
+          docker push ${{ secrets.DOCKERHUB_DEV_USERNAME }}/seasonthon:latest
 
   deploy:
     runs-on: ubuntu-latest
@@ -60,5 +60,5 @@ jobs:
             sudo docker login -u ${{ secrets.DOCKERHUB_DEV_USERNAME }} -p ${{ secrets.DOCKERHUB_DEV_TOKEN }}
             sudo docker-compose stop
             sudo docker-compose rm -f
-            sudo docker rmi ${{ secrets.DOCKERHUB_DEV_USERNAME }}/point-career:latest
+            sudo docker rmi ${{ secrets.DOCKERHUB_DEV_USERNAME }}/seasonthon:latest
             sudo docker-compose up -d
