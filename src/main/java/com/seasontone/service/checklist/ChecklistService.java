@@ -74,7 +74,7 @@ public class ChecklistService {
             .monthly(ci.getMonthly() == null ? 0 : ci.getMonthly())
             .maintenanceFee(ci.getMaintenanceFee() == null ? 0 : ci.getMaintenanceFee())
             .floorAreaSqm(ci.getFloorAreaSqm() == null ? 0 : ci.getFloorAreaSqm())
-            .avgScore(ci.averageScore())
+            .avgScore(round1(ci.averageScore()))
             .build())
         .toList();
   }
@@ -137,13 +137,19 @@ public class ChecklistService {
     i.setMemo(d.memo());
   }
 
+  //평점 소수점 1자리까지 출력
+  private static Double round1(Double v) {
+    if (v == null) return null;
+    return Math.round(v * 10.0) / 10.0;
+  }
+
   private ChecklistResponse toResponse(ChecklistItems i) {
     var itemsDto = new ChecklistItemDto(
         i.getName(), i.getAddress(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(), i.getOptions(), i.getSecurity(), i.getNoise(),
         i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo()
     );
-    Double avg = i.averageScore();
+    Double avg = round1(i.averageScore());
 
     // photos (1:N)
     List<PhotoDto> photos = photoRepo.findByItems_Id(i.getId()).stream()
@@ -211,7 +217,7 @@ public class ChecklistService {
                                       .deposit(checklist.getDeposit())
                                       .maintenanceFee(checklist.getMaintenanceFee())
                                       .floorAreaSqm(checklist.getFloorAreaSqm())
-                                      .score(checklist.averageScore())
+                                      .score(round1(checklist.averageScore()))
                                       .build())
                               .toList())
                       .build();
@@ -220,48 +226,49 @@ public class ChecklistService {
   }
 
   public List<ChecklistGroupResponse> getRegionChecklist(User user) {
-    User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
+    User findUser = userRepository.findById(user.getId())
+        .orElseThrow(() -> new NullPointerException("존재하지 않는 회원입니다."));
     List<ChecklistItems> checklists = itemsRepo.findByAddressContaining(findUser.getRegion());
 
     Map<String, List<ChecklistItems>> grouped = checklists.stream()
-            .collect(Collectors.groupingBy(ChecklistItems::getAddress));
+        .collect(Collectors.groupingBy(ChecklistItems::getAddress));
 
     return grouped.entrySet().stream()
-            .map(entry -> {
-              List<ChecklistItems> groupList = entry.getValue();
+        .map(entry -> {
+          List<ChecklistItems> groupList = entry.getValue();
 
-              // 각 그룹에서 가장 최근 생성된 체크리스트 가져오기
-              ChecklistItems latest = groupList.stream()
-                      .max(Comparator.comparing(ChecklistItems::getId))
-                      .orElseThrow();
+          // 각 그룹에서 가장 최근 생성된 체크리스트 가져오기
+          ChecklistItems latest = groupList.stream()
+              .max(Comparator.comparing(ChecklistItems::getId))
+              .orElseThrow();
 
-              double avgScore = groupList.stream()
-                      .mapToDouble(ChecklistItems::averageScore)
-                      .average()
-                      .orElse(0.0);
+          double avgScore = groupList.stream()
+              .mapToDouble(ChecklistItems::averageScore)
+              .average()
+              .orElse(0.0);
 
-
-              return ChecklistGroupResponse.builder()
-                      .address(entry.getKey())
-                      .latestName(latest.getName())
-                      .latestMonthly(latest.getMonthly())
-                      .latestDeposit(latest.getDeposit())
-                      .avgScore(avgScore)
-                      .latestMaintenanceFee(latest.getMaintenanceFee())
-                      .latestFloorAreaSqm(latest.getFloorAreaSqm())
-                      .checklists(groupList.stream()
-                              .map(checklist -> ChecklistGroupResponse.ChecklistDetailsResponse.builder()
-                                      .id(checklist.getId())
-                                      .name(checklist.getName())
-                                      .monthly(checklist.getMonthly())
-                                      .deposit(checklist.getDeposit())
-                                      .maintenanceFee(checklist.getMaintenanceFee())
-                                      .floorAreaSqm(checklist.getFloorAreaSqm())
-                                      .score(checklist.averageScore())
-                                      .build())
-                              .toList())
-                      .build();
-            })
-            .toList();
+          return ChecklistGroupResponse.builder()
+              .address(entry.getKey())
+              .latestName(latest.getName())
+              .latestMonthly(latest.getMonthly())
+              .latestDeposit(latest.getDeposit())
+              .avgScore(avgScore)
+              .latestMaintenanceFee(latest.getMaintenanceFee())
+              .latestFloorAreaSqm(latest.getFloorAreaSqm())
+              .checklists(groupList.stream()
+                  .map(checklist -> ChecklistGroupResponse.ChecklistDetailsResponse.builder()
+                      .id(checklist.getId())
+                      .name(checklist.getName())
+                      .monthly(checklist.getMonthly())
+                      .deposit(checklist.getDeposit())
+                      .maintenanceFee(checklist.getMaintenanceFee())
+                      .floorAreaSqm(checklist.getFloorAreaSqm())
+                      .score(round1(checklist.averageScore()))
+                      .build())
+                  .toList())
+              .build();
+        })
+        .toList();
   }
+
 }
