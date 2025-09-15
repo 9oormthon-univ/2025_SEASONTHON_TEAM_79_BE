@@ -18,7 +18,7 @@ public class AudioController {
 
   private final VoiceNoteService audioService;
 
-  /** 음성 업로드(교체) - 로그인 필요 */
+  // 음성 업로드(+ 교체)
   @PostMapping(
       value = "/{checkId}/audio",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
@@ -35,7 +35,7 @@ public class AudioController {
     return audioService.uploadReplace(checkId, meId, file, durationSec);
   }
 
-  /** 음성 메타 조회 */
+  //음성 메타 조회
   @GetMapping(value = "/{checkId}/audio", produces = MediaType.APPLICATION_JSON_VALUE)
   public VoiceNoteDto meta(@PathVariable Long checkId) {
     return audioService.getMeta(checkId);
@@ -54,7 +54,7 @@ public class AudioController {
         .body(body);
   }
 
-  /** 음성 삭제 - 로그인 필요 */
+  //음성 삭제
   @DeleteMapping("/{checkId}/audio")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(

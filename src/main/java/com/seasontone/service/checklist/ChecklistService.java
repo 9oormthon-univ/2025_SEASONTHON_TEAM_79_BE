@@ -176,8 +176,10 @@ public class ChecklistService {
   public List<ChecklistGroupResponse> getGroupedByAddress() {
     List<ChecklistItems> checklists = itemsRepo.findAll();
 
+    //주소 null값일시 반환x
     Map<String, List<ChecklistItems>> grouped = checklists.stream()
-            .collect(Collectors.groupingBy(ChecklistItems::getAddress));
+        .filter(ci -> ci.getAddress() != null && !ci.getAddress().isBlank())
+        .collect(Collectors.groupingBy(ChecklistItems::getAddress));
 
     return grouped.entrySet().stream()
             .map(entry -> {

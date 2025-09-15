@@ -2,7 +2,6 @@ package com.seasontone.service.checklist;
 
 import com.seasontone.domain.checklists.ChecklistItems;
 import com.seasontone.dto.photo.PhotoDto;
-import com.seasontone.dto.photo.PhotoMetaProjection;
 import com.seasontone.domain.checklists.RecordPhoto;
 import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.RecordPhotoRepository;
@@ -62,7 +61,7 @@ public class ChecklistPhotoService {
         saved.getSize(), saved.getCaption(), saved.getCreatedAt(), rawUrl);
   }
 
-  /** 1:N 목록 조회 */
+  // 1:N 목록 조회
   @Transactional(readOnly = true)
   public List<PhotoDto> list(Long checkId) {
     ChecklistItems i = itemsRepo.findById(checkId)
@@ -76,7 +75,7 @@ public class ChecklistPhotoService {
         .toList();
   }
 
-  /** 원본 바이트: checkId + photoId */
+  //원본 바이트: checkId + photoId
   @Transactional(readOnly = true)
   public RecordPhoto loadEntityForRaw(Long checkId, Long photoId) {
     ChecklistItems i = itemsRepo.findById(checkId)
@@ -85,7 +84,7 @@ public class ChecklistPhotoService {
         .orElseThrow(() -> new EntityNotFoundException("Photo not found"));
   }
 
-  /** 특정 사진 삭제 (소유자 검증 포함) */
+  //특정 사진 삭제
   @Transactional
   public void delete(Long checkId, Long photoId, Long currentUserId) {
     ChecklistItems i = itemsRepo.findByIdAndUser_Id(checkId, currentUserId)
