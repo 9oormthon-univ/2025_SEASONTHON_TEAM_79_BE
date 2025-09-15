@@ -3,15 +3,12 @@ package com.seasontone.service.checklist;
 import com.seasontone.dto.voice.VoiceNoteDto;
 import com.seasontone.domain.checklists.ChecklistItems;
 import com.seasontone.domain.checklists.RecordVoiceNote;
-import com.seasontone.domain.checklists.UserRecord;
+import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.RecordVoiceNoteRepository;
-import com.seasontone.repository.UserRecordRepository;
 import com.seasontone.service.TextSummarizer;
 import com.seasontone.service.WhisperClient;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,27 +19,24 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class VoiceNoteService {
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
-  private final UserRecordRepository recordRepo;
+  private final ChecklistItemsRepository itemsRepo;
   private final RecordVoiceNoteRepository voiceRepo;
-   private final WhisperClient whisper;     // ← 이제 실제 구현(OpenAiWhisperClient)이 주입됨
-  private final TextSummarizer summarizer; // ← OpenAiTextSummarizer 주입
+  private final WhisperClient whisper;
+  private final TextSummarizer summarizer;
 
   @Transactional
   public VoiceNoteDto uploadReplace(Long checkId, Long userId, MultipartFile file, Integer durationSec) throws IOException {
     if (file == null || file.isEmpty()) throw new IllegalArgumentException("file is empty");
     if (file.getSize() > 20 * 1024 * 1024) throw new IllegalArgumentException("file too large (<=20MB)");
 
-    UserRecord r = recordRepo.findByIdAndUser_Id(checkId, userId)
+    ChecklistItems i = itemsRepo.findByIdAndUser_Id(checkId, userId)
         .orElseThrow(() -> new AccessDeniedException("Not owner"));
-    if (r.getItems() == null) r.attachBlankItems();
-    ChecklistItems items = r.getItems();
 
-    voiceRepo.findByItems_Id(items.getId()).ifPresent(voiceRepo::delete);
+    // 기존 음성 삭제(1:1)
+    voiceRepo.findByItems_Id(i.getId()).ifPresent(voiceRepo::delete);
 
     RecordVoiceNote v = new RecordVoiceNote();
-    v.setItems(items);
+    v.setItems(i);
     v.setFilename(file.getOriginalFilename());
     v.setContentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream");
     v.setSize(file.getSize());
@@ -54,15 +48,8 @@ public class VoiceNoteService {
       String summary = summarizer.summarize(transcript);
       v.setTranscript(transcript);
       v.setSummary(summary);
-
-      String newMemo = (items.getMemo()==null || items.getMemo().isBlank())
-          ? summary
-          : items.getMemo() + "\n\n[음성 요약]\n" + summary;
-      items.setMemo(newMemo);
-
-    } catch (Exception e) {
-      log.error("[VOICE] transcribe/summarize failed", e); // ★ 로그로 원인 확인
-    }
+      i.setMemo((i.getMemo()==null || i.getMemo().isBlank()) ? summary : i.getMemo()+"\n\n[음성 요약]\n"+summary);
+    } catch (Exception ignore) { }
 
     RecordVoiceNote saved = voiceRepo.save(v);
     return new VoiceNoteDto(
@@ -74,12 +61,10 @@ public class VoiceNoteService {
 
   @Transactional(readOnly = true)
   public VoiceNoteDto getMeta(Long checkId){
-    UserRecord r = recordRepo.findById(checkId)
+    ChecklistItems i = itemsRepo.findById(checkId)
         .orElseThrow(() -> new EntityNotFoundException("Checklist not found"));
-    if (r.getItems() == null) throw new EntityNotFoundException("Items not found");
-    RecordVoiceNote v = voiceRepo.findByItems_Id(r.getItems().getId())
+    RecordVoiceNote v = voiceRepo.findByItems_Id(i.getId())
         .orElseThrow(() -> new EntityNotFoundException("Voice note not found"));
-
     return new VoiceNoteDto(
         v.getFilename(), v.getContentType(), v.getSize(), v.getDurationSec(),
         v.getTranscript(), v.getSummary(), v.getCreatedAt(), v.getUpdatedAt(),
@@ -88,19 +73,17 @@ public class VoiceNoteService {
   }
 
   @Transactional(readOnly = true)
-  public RecordVoiceNote loadEntityForRaw(Long checkId){
-    UserRecord r = recordRepo.findById(checkId)
+  public RecordVoiceNote loadForRaw(Long checkId){
+    ChecklistItems i = itemsRepo.findById(checkId)
         .orElseThrow(() -> new EntityNotFoundException("Checklist not found"));
-    if (r.getItems() == null) throw new EntityNotFoundException("Items not found");
-    return voiceRepo.findByItems_Id(r.getItems().getId())
+    return voiceRepo.findByItems_Id(i.getId())
         .orElseThrow(() -> new EntityNotFoundException("Voice note not found"));
   }
 
   @Transactional
   public void delete(Long checkId, Long userId){
-    UserRecord r = recordRepo.findByIdAndUser_Id(checkId, userId)
+    ChecklistItems i = itemsRepo.findByIdAndUser_Id(checkId, userId)
         .orElseThrow(() -> new AccessDeniedException("Not owner"));
-    if (r.getItems() == null) return;
-    voiceRepo.deleteByItems_Id(r.getItems().getId());
+    voiceRepo.deleteByItems_Id(i.getId());
   }
 }

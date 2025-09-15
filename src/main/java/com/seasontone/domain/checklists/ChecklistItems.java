@@ -1,14 +1,17 @@
 package com.seasontone.domain.checklists;
 
 import com.seasontone.domain.BaseEntity;
+import com.seasontone.domain.users.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
-import jakarta.persistence.MapsId;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -25,71 +28,50 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "checklist_items")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class ChecklistItems extends BaseEntity {
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class ChecklistItems /* extends BaseEntity (원하면 제거 가능) */ {
 
-  @Id
+  @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "check_id")
   private Long id;
 
-  @OneToOne(fetch = FetchType.LAZY)
-  @MapsId                               // check_id = 부모 PK 공유
-  @JoinColumn(name = "check_id")
-  private UserRecord checklist;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-  // 사진: 1:N
+  // ===== 폼 필드만 유지 =====
+  @Column(length = 255) private String name;
+  @Column(length = 255) private String address;
+  private Integer monthly;
+  private Integer deposit;
+  private Integer maintenanceFee;
+  private Integer floorAreaSqm;
+  private Integer mining, water, cleanliness, options, security, noise, surroundings, recycling;
+  private Boolean elevator, veranda, pet;
+  @Lob @Column(columnDefinition = "TEXT")
+  @jakarta.validation.constraints.Size(max = 500)
+  private String memo;
+
+  // photos: 1:N
   @Builder.Default
   @OneToMany(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RecordPhoto> photos = new ArrayList<>();
 
-  // 음성: 1:1 (체크리스트당 하나)
+  // voice: 1:1 (비식별)
   @OneToOne(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private RecordVoiceNote voiceNote;
 
-  @Column(name = "name", length = 255)    private String name;
-  @Column(name = "address", length = 255) private String address;
-
-  @Column(name = "monthly")     private int monthly; //월세
-  @Column(name = "deposit")     private int deposit; //보증금
-  @Column(name = "maintenanceFee")    private int  maintenanceFee; //관리비
-  @Column(name = "floorAreaSqm")  private Integer floorAreaSqm; //평수
-  @Column(name = "mining")      private Integer mining;     // 채광
-  @Column(name = "water")        private Integer water;        // 수압
-  @Column(name = "cleanliness")  private Integer cleanliness;  // 청결
-  @Column(name = "options")      private Integer options;      // 옵션
-  @Column(name = "security")     private Integer security;     // 보안
-  @Column(name = "noise")        private Integer noise;        // 소음
-  @Column(name = "surroundings") private Integer surroundings; // 주변환경
-  @Column(name = "recycling")    private Integer recycling;    // 분리수거
-
-  @Column(name = "elevator")     private Boolean elevator;
-  @Column(name = "veranda")      private Boolean veranda;
-  @Column(name = "pet")          private Boolean pet;
-
-  @Lob
-  @Column(columnDefinition = "TEXT")   // 저장은 TEXT로 넉넉하게
-  @jakarta.validation.constraints.Size(max = 500) // ★ 최대 1000자 검증
-  private String memo;
-
-  // 점수 계산.. 이거 들어가나?
   public List<Integer> scores() {
     return Stream.of(mining, water, cleanliness, options, security, noise, surroundings, recycling)
         .filter(Objects::nonNull).toList();
   }
-
   @Transient
   public double averageScore() {
-    var s = scores(); // 이미 있는 메서드
+    var s = scores();
     return s.isEmpty() ? 0.0 : s.stream().mapToInt(Integer::intValue).average().orElse(0.0);
   }
 
-  // helpers
   public void addPhoto(RecordPhoto p){ photos.add(p); p.setItems(this); }
   public void removePhoto(RecordPhoto p){ photos.remove(p); p.setItems(null); }
   public void setVoiceNote(RecordVoiceNote v){ this.voiceNote = v; if (v!=null) v.setItems(this); }
 }
-

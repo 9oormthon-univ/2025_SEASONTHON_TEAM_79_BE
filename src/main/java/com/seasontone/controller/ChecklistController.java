@@ -53,7 +53,7 @@ public class ChecklistController {
   @GetMapping(value = "/users/{userId}/checklists/page", produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<ChecklistResponse> pageByUser(
       @PathVariable Long userId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = DESC)
+      @PageableDefault(size = 10, direction = DESC)
       Pageable pageable
   ) {
     return checklistService.pageByUser(userId, pageable);

@@ -16,28 +16,35 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/api/checklists")
 public class AudioController {
 
-  private final VoiceNoteService audioService; // ← 실제 서비스 타입과 맞추기
+  private final VoiceNoteService audioService;
 
-  @PostMapping(value="/{checkId}/audio", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  /** 음성 업로드(교체) - 로그인 필요 */
+  @PostMapping(
+      value = "/{checkId}/audio",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+      produces = MediaType.APPLICATION_JSON_VALUE
+  )
   @ResponseStatus(HttpStatus.CREATED)
   public VoiceNoteDto upload(
       @PathVariable Long checkId,
-      @RequestParam("file") MultipartFile file,                // ← file
-      @RequestParam(value="durationSec", required=false) Integer durationSec,
-      @AuthenticationPrincipal(expression="id") Long meId
+      @RequestPart("file") MultipartFile file,                     // ← 멀티파트 파일
+      @RequestParam(value = "durationSec", required = false) Integer durationSec,
+      @AuthenticationPrincipal(expression = "id") Long meId
   ) throws IOException {
     if (meId == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다");
     return audioService.uploadReplace(checkId, meId, file, durationSec);
   }
 
-  @GetMapping("/{checkId}/audio")
-  public VoiceNoteDto meta(@PathVariable Long checkId){
+  /** 음성 메타 조회 */
+  @GetMapping(value = "/{checkId}/audio", produces = MediaType.APPLICATION_JSON_VALUE)
+  public VoiceNoteDto meta(@PathVariable Long checkId) {
     return audioService.getMeta(checkId);
   }
 
+  // 원본 스트리밍
   @GetMapping("/{checkId}/audio/raw")
   public ResponseEntity<ByteArrayResource> raw(@PathVariable Long checkId){
-    var v = audioService.loadEntityForRaw(checkId);
+    var v = audioService.loadForRaw(checkId);              // ← 서비스에 추가한 메서드 사용
     var body = new ByteArrayResource(v.getData());
     var ct = (v.getContentType()!=null)? v.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
     var name = (v.getFilename()!=null)? v.getFilename() : ("voice-"+checkId);
@@ -47,12 +54,15 @@ public class AudioController {
         .body(body);
   }
 
+  /** 음성 삭제 - 로그인 필요 */
   @DeleteMapping("/{checkId}/audio")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable Long checkId, @AuthenticationPrincipal(expression="id") Long meId){
-    if (meId == null) {
+  public void delete(
+      @PathVariable Long checkId,
+      @AuthenticationPrincipal(expression = "id") Long meId
+  ) {
+    if (meId == null)
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다");
-    }
     audioService.delete(checkId, meId);
   }
 }

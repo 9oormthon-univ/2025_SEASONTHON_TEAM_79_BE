@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
+/*
 @Entity @Table(name = "listings")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Listing {
@@ -21,3 +21,5 @@ public class Listing {
   @Column(name = "pro_id")
   private Long id;
 }
+
+ */
