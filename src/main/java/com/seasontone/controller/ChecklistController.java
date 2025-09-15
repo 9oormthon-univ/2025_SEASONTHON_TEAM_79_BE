@@ -49,17 +49,16 @@ public class ChecklistController {
     return checklistService.get(checkId);
   }
 
-  //유저별로 체크리스트 보여줌
+  //유저별로 체크리스트 보여줌 (전부 보여주는 api) = checklists/mine은 미리보기
   @GetMapping(value = "/users/{userId}/checklists/page", produces = MediaType.APPLICATION_JSON_VALUE)
   public Page<ChecklistResponse> pageByUser(
       @PathVariable Long userId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = DESC)
+      @PageableDefault(size = 10, direction = DESC)
       Pageable pageable
   ) {
     return checklistService.pageByUser(userId, pageable);
   }
 
-//보안걸고.. 유저 update, delete
   //모든 요소 같이 업데이트
   @PutMapping(value = "/checklists/{checkId}",
       consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -93,31 +92,5 @@ public class ChecklistController {
   public ResponseEntity<List<ChecklistGroupResponse>> getGroupedByAddress() {
     return ResponseEntity.ok(checklistService.getGroupedByAddress());
   }
-
-/*
-  //모든 요소 같이 업데이트
-  @PutMapping(value="/checklists/{checkId}", consumes = "application/json", produces = "application/json")
-  public ChecklistResponse updateAll(@PathVariable Long checkId,
-      @RequestBody @Valid ChecklistUpdateRequest req,
-      @RequestHeader("X-USER-ID") Long userId) {
-    return checklistService.updateAllOwned(checkId, userId, req);
-  }
-
-  //삭제
-  @DeleteMapping("/checklists/{checkId}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void delete(@PathVariable Long checkId,
-      @RequestHeader("X-USER-ID") Long userId) {
-    checklistService.deleteOwned(checkId, userId);
-  }
-
-  //매물별 체크리스트..
-  @GetMapping("/listings/{listingId}/checklists/page")
-  public Page<ChecklistResponse> previewByListingPaged(
-      @PathVariable Long listingId, @PageableDefault(size=10, sort="createdAt", direction = DESC) Pageable p) {
-    return checklistService.pageByListing(listingId, p);
-  }
-
- */
 
 }
