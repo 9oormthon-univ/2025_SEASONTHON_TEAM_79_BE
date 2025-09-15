@@ -49,7 +49,7 @@ public class SecurityConfig {
 								"/swagger-ui.html"
 						).permitAll()
 						.requestMatchers("/users/**").permitAll()
-						.anyRequest().authenticated()
+						.anyRequest().permitAll()
 
 				)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
