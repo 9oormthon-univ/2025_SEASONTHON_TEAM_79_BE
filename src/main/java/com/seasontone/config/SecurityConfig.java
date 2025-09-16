@@ -42,14 +42,15 @@ public class SecurityConfig {
 						.frameOptions(frameOptions -> frameOptions.disable())
 				)
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/sc", "/env").permitAll()
-						.requestMatchers(
-								"/v3/api-docs/**",
-								"/swagger-ui/**",
-								"/swagger-ui.html"
-						).permitAll()
-						.requestMatchers("/users/**").permitAll()
-						.anyRequest().permitAll()
+								.requestMatchers("/sc", "/env").permitAll()
+								.requestMatchers(
+										"/v3/api-docs/**",
+										"/swagger-ui/**",
+										"/swagger-ui.html"
+								).permitAll()
+								.requestMatchers("/users/**").permitAll()
+//						.anyRequest().permitAll()
+								.anyRequest().authenticated()
 
 				)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -58,3 +59,4 @@ public class SecurityConfig {
 	}
 
 }
+
