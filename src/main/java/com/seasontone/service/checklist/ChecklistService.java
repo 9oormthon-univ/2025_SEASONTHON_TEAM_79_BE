@@ -6,7 +6,7 @@ import com.seasontone.dto.checklists.ChecklistCreateRequest;
 import com.seasontone.dto.checklists.ChecklistItemDto;
 import com.seasontone.dto.checklists.ChecklistUpdateRequest;
 import com.seasontone.dto.photo.PhotoDto;
-import com.seasontone.dto.voice.VoiceNoteDto;
+import com.seasontone.dto.response.ChecklistPreviewResponse;
 import com.seasontone.dto.response.ChecklistGroupResponse;
 import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.dto.response.MyChecklistResponse;
@@ -20,8 +20,8 @@ import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -179,7 +179,7 @@ public class ChecklistService {
         i.getName(), i.getAddress(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(), i.getOptions(), i.getSecurity(), i.getNoise(),
         i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(),
-        voiceSummary // ★ 여기에 넣는다. null이면 응답에서 자동 생략됨
+        voiceSummary // 여기에 넣는다. null이면 응답에서 자동 생략됨
     );
     Double avg = round1(i.averageScore());
 
@@ -189,18 +189,6 @@ public class ChecklistService {
             p.getCaption(), p.getCreatedAt(),
             "/api/checklists/%d/photos/%d/raw".formatted(i.getId(), p.getId())))
         .toList();
-
-    /*
-    // voice (1:1)
-    VoiceNoteDto voice = itemsRepo.findById(i.getId())
-        .flatMap(ci -> Optional.ofNullable(ci.getVoiceNote()))
-        .map(v -> new VoiceNoteDto(
-            v.getFilename(), v.getContentType(), v.getSize(), v.getDurationSec(),
-            v.getTranscript(), v.getSummary(), v.getCreatedAt(), v.getUpdatedAt(),
-            "/api/checklists/%d/audio/raw".formatted(i.getId())))
-        .orElse(null);
-
-     */
 
     return new ChecklistResponse(
         i.getId(),
@@ -304,5 +292,48 @@ public class ChecklistService {
         })
         .toList();
   }
+
+  //api/checklists 검색요청
+  public List<ChecklistPreviewResponse> searchGroupedSummary(String query) {
+    String key = (query == null) ? "" : query.replaceAll("\\s+", "").toLowerCase(Locale.ROOT);
+    if (key.isBlank()) return List.of(); // 빈 검색어면 빈 결과(정책에 따라 전체 반환도 가능)
+
+    List<ChecklistItems> matched = itemsRepo.searchByNameOrAddressNoSpace(key);
+
+    // address가 비어있는 건 제외(그룹 키 null 방지)
+    Map<String, List<ChecklistItems>> grouped = matched.stream()
+        .filter(ci -> ci.getAddress() != null && !ci.getAddress().isBlank())
+        .collect(Collectors.groupingBy(ChecklistItems::getAddress));
+
+    return grouped.entrySet().stream()
+        .map(entry -> {
+          List<ChecklistItems> group = entry.getValue();
+
+          // "가장 마지막 값" 기준: id 최대
+          ChecklistItems latest = group.stream()
+              .max(Comparator.comparing(ChecklistItems::getId))
+              .orElseThrow();
+
+          // 그룹 평균 점수(소수 1자리)
+          double avg = round1(
+              group.stream().mapToDouble(ChecklistItems::averageScore).average().orElse(0.0)
+          );
+
+          return ChecklistPreviewResponse.builder()
+              .address(entry.getKey())
+              .latestName(safeStr(latest.getName()))
+              .latestMonthly(nz(latest.getMonthly()))
+              .latestDeposit(nz(latest.getDeposit()))
+              .latestMaintenanceFee(nz(latest.getMaintenanceFee()))
+              .latestFloorAreaSqm(nz(latest.getFloorAreaSqm()))
+              .avgScore(avg)
+              .build();
+        })
+        .sorted(Comparator.comparingDouble(ChecklistPreviewResponse::getAvgScore).reversed()) // 점수 높은 순
+        .toList();
+  }
+
+  private static int nz(Integer v) { return v == null ? 0 : v; }
+  private static String safeStr(String s) { return (s == null || s.isBlank()) ? "" : s; }
 
 }
