@@ -17,13 +17,14 @@ public class CorsConfig {
     // 프론트(로컬 Vite)와 배포 도메인 허용
     c.setAllowedOrigins(List.of(
         "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "http://43.200.96.110",
         "http://43.200.96.110:8080"
     ));
     c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
     //CORS Bean을 관대한 설정으로
     c.setAllowedHeaders(List.of("*"));
-    c.setAllowedHeaders(List.of("Authorization","Content-Type"));
+    c.setExposedHeaders(List.of("Authorization"));
     c.setAllowCredentials(true);     // 쿠키/인증 헤더 허용시 true
     c.setMaxAge(3600L);              // preflight 캐시(초)
 
