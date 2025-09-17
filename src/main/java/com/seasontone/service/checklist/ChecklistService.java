@@ -42,6 +42,7 @@ public class ChecklistService {
   private final RecordVoiceNoteRepository voiceRepo;
   private final VoiceNoteService voiceNoteService;
 
+  /*
   @Transactional
   public ChecklistResponse create(ChecklistCreateRequest req) {
     User user = userRepository.findById(req.userId())
@@ -53,6 +54,8 @@ public class ChecklistService {
 
     return toResponse(itemsRepo.save(i));
   }
+
+   */
 
   // ★ 신규 오버로드: 음성파일 동시 처리
   @Transactional
@@ -102,6 +105,7 @@ public class ChecklistService {
             .maintenanceFee(ci.getMaintenanceFee() == null ? 0 : ci.getMaintenanceFee())
             .floorAreaSqm(ci.getFloorAreaSqm() == null ? 0 : ci.getFloorAreaSqm())
             .avgScore(round1(ci.averageScore()))
+            .photos(loadPhotoMetas(ci.getId()))
             .build())
         .toList();
   }
@@ -286,6 +290,7 @@ public class ChecklistService {
                       .maintenanceFee(checklist.getMaintenanceFee())
                       .floorAreaSqm(checklist.getFloorAreaSqm())
                       .score(round1(checklist.averageScore()))
+                      .photos(loadPhotoMetas(checklist.getId()))
                       .build())
                   .toList())
               .build();
@@ -330,6 +335,21 @@ public class ChecklistService {
               .build();
         })
         .sorted(Comparator.comparingDouble(ChecklistPreviewResponse::getAvgScore).reversed()) // 점수 높은 순
+        .toList();
+  }
+
+  private List<PhotoDto> loadPhotoMetas(Long itemsId) {
+    return photoRepo.findByItems_Id(itemsId).stream()
+        .map(m -> new PhotoDto(
+            m.getId(),
+            m.getFilename(),
+            m.getContentType(),
+            m.getSize(),
+            m.getCaption(),
+            m.getCreatedAt(),
+            // 기존 라우팅 규칙 유지
+            "/api/checklists/%d/photos/%d/raw".formatted(itemsId, m.getId())
+        ))
         .toList();
   }
 

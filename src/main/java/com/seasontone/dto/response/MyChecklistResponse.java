@@ -1,5 +1,7 @@
 package com.seasontone.dto.response;
 
+import com.seasontone.dto.photo.PhotoDto;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,4 +18,5 @@ public class MyChecklistResponse {
 	private int maintenanceFee; // 관리비
 	private int floorAreaSqm;
 	private double avgScore; //평점
+	private List<PhotoDto> photos;
 }
