@@ -2,6 +2,7 @@ package com.seasontone.controller;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seasontone.dto.checklists.ChecklistCreateRequest;
 import com.seasontone.dto.checklists.ChecklistUpdateRequest;
 import com.seasontone.dto.response.ChecklistGroupResponse;
@@ -10,6 +11,7 @@ import com.seasontone.dto.response.MyChecklistResponse;
 import com.seasontone.domain.users.User;
 import com.seasontone.service.checklist.ChecklistService;
 import jakarta.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,20 +29,46 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class ChecklistController {
   private final ChecklistService checklistService;
+  private final ObjectMapper objectMapper;
 
+  /*
   //체크리스트 생성
   @PostMapping("/checklists")
   @ResponseStatus(HttpStatus.CREATED)
   public ChecklistResponse create(@RequestBody @Valid ChecklistCreateRequest request) {
     return checklistService.create(request);   // ← request 타입이 위 DTO여야 함
+  }
+
+   */
+
+  //체크리스트 생성
+  @PostMapping("/checklists")
+  @ResponseStatus(HttpStatus.CREATED)
+  public ChecklistResponse createMultipart(
+      @RequestParam("payload") String payloadJson,                // ← String으로 받기!
+      @RequestPart(value = "file", required = false) MultipartFile file,
+      @RequestParam(value = "durationSec", required = false) Integer durationSec,
+      @AuthenticationPrincipal(expression="id") Long meId
+  ) throws IOException {
+    if (meId == null) throw new AccessDeniedException("Login required.");
+
+    ChecklistCreateRequest payload =
+        objectMapper.readValue(payloadJson, ChecklistCreateRequest.class);
+
+    if (!payload.userId().equals(meId)) throw new AccessDeniedException("Not owner.");
+
+    return checklistService.create(payload, file, durationSec);
   }
 
   //체크리스트 id별로 찾음.

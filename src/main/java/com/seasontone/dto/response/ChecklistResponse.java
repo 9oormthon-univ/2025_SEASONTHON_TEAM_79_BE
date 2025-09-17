@@ -11,6 +11,6 @@ public record ChecklistResponse(
     Long userId,
     Double avgScore,
     ChecklistItemDto items,
-    List<PhotoDto> photos,
-    VoiceNoteDto voiceNote
+    List<PhotoDto> photos
+    //VoiceNoteDto voiceNote
 ) {}

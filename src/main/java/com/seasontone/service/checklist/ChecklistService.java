@@ -1,6 +1,7 @@
 package com.seasontone.service.checklist;
 
 
+import com.seasontone.domain.checklists.RecordVoiceNote;
 import com.seasontone.dto.checklists.ChecklistCreateRequest;
 import com.seasontone.dto.checklists.ChecklistItemDto;
 import com.seasontone.dto.checklists.ChecklistUpdateRequest;
@@ -16,6 +17,7 @@ import com.seasontone.repository.RecordPhotoRepository;
 import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +26,11 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class ChecklistService {
   private final ChecklistItemsRepository itemsRepo;
   private final RecordPhotoRepository photoRepo;
   private final RecordVoiceNoteRepository voiceRepo;
+  private final VoiceNoteService voiceNoteService;
 
   @Transactional
   public ChecklistResponse create(ChecklistCreateRequest req) {
@@ -47,6 +52,28 @@ public class ChecklistService {
     if (req.items() != null) applyItems(i, req.items());
 
     return toResponse(itemsRepo.save(i));
+  }
+
+  // ★ 신규 오버로드: 음성파일 동시 처리
+  @Transactional
+  public ChecklistResponse create(ChecklistCreateRequest req,
+      @Nullable MultipartFile voiceFile,
+      @Nullable Integer durationSec) throws IOException {
+    User user = userRepository.findById(req.userId())
+        .orElseThrow(() -> new EntityNotFoundException("User not found: " + req.userId()));
+
+    ChecklistItems i = new ChecklistItems();
+    i.setUser(user);
+    if (req.items() != null) applyItems(i, req.items());
+
+    ChecklistItems saved = itemsRepo.save(i); // checkId 확정
+
+    // 파일이 있으면 즉시 업로드(1:1 교체) → Whisper/요약은 VoiceNoteService에서 처리
+    if (voiceFile != null && !voiceFile.isEmpty()) {
+      voiceNoteService.uploadReplace(saved.getId(), user.getId(), voiceFile, durationSec);
+    }
+    // 방금 저장된 음성 메타까지 포함해서 반환
+    return toResponse(saved);
   }
 
   public ChecklistResponse get(Long checkId) {
@@ -144,10 +171,15 @@ public class ChecklistService {
   }
 
   private ChecklistResponse toResponse(ChecklistItems i) {
+    String voiceSummary = voiceRepo.findByItems_Id(i.getId())
+        .map(RecordVoiceNote::getSummary)
+        .orElse(null);
+
     var itemsDto = new ChecklistItemDto(
         i.getName(), i.getAddress(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(), i.getOptions(), i.getSecurity(), i.getNoise(),
-        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo()
+        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(),
+        voiceSummary // ★ 여기에 넣는다. null이면 응답에서 자동 생략됨
     );
     Double avg = round1(i.averageScore());
 
@@ -158,6 +190,7 @@ public class ChecklistService {
             "/api/checklists/%d/photos/%d/raw".formatted(i.getId(), p.getId())))
         .toList();
 
+    /*
     // voice (1:1)
     VoiceNoteDto voice = itemsRepo.findById(i.getId())
         .flatMap(ci -> Optional.ofNullable(ci.getVoiceNote()))
@@ -167,13 +200,14 @@ public class ChecklistService {
             "/api/checklists/%d/audio/raw".formatted(i.getId())))
         .orElse(null);
 
+     */
+
     return new ChecklistResponse(
         i.getId(),
         i.getUser() != null ? i.getUser().getId() : null,
         avg,
         itemsDto,
-        photos,
-        voice
+        photos
     );
   }
 
