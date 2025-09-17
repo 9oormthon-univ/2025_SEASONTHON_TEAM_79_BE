@@ -1,6 +1,7 @@
 package com.seasontone.domain.checklists;
 
 import com.seasontone.domain.BaseEntity;
+import com.seasontone.domain.listing.Listing;
 import com.seasontone.domain.users.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -60,6 +61,10 @@ public class ChecklistItems /* extends BaseEntity (원하면 제거 가능) */ {
   // voice: 1:1 (비식별)
   @OneToOne(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private RecordVoiceNote voiceNote;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "listing_id")
+  private Listing listing;
 
   public List<Integer> scores() {
     return Stream.of(mining, water, cleanliness, options, security, noise, surroundings, recycling)

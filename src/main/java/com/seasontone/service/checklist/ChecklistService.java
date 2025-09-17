@@ -2,6 +2,7 @@ package com.seasontone.service.checklist;
 
 
 import com.seasontone.domain.checklists.RecordVoiceNote;
+import com.seasontone.domain.listing.Listing;
 import com.seasontone.dto.checklists.ChecklistCreateRequest;
 import com.seasontone.dto.checklists.ChecklistItemDto;
 import com.seasontone.dto.checklists.ChecklistUpdateRequest;
@@ -16,6 +17,7 @@ import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.RecordPhotoRepository;
 import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.user.UserRepository;
+import com.seasontone.service.listing.ListingService;
 import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.Comparator;
@@ -41,6 +43,7 @@ public class ChecklistService {
   private final RecordPhotoRepository photoRepo;
   private final RecordVoiceNoteRepository voiceRepo;
   private final VoiceNoteService voiceNoteService;
+  private final ListingService listingService;
 
   /*
   @Transactional
@@ -65,9 +68,11 @@ public class ChecklistService {
     User user = userRepository.findById(req.userId())
         .orElseThrow(() -> new EntityNotFoundException("User not found: " + req.userId()));
 
+    Listing listing = listingService.createListing(req.items().address(), req.items().name());
+
     ChecklistItems i = new ChecklistItems();
     i.setUser(user);
-    if (req.items() != null) applyItems(i, req.items());
+    if (req.items() != null) applyItems(i, req.items(), listing);
 
     ChecklistItems saved = itemsRepo.save(i); // checkId 확정
 
@@ -125,7 +130,7 @@ public class ChecklistService {
     itemsRepo.delete(i);
   }
 
-  private void applyItems(ChecklistItems i, ChecklistItemDto d){
+  private void applyItems(ChecklistItems i, ChecklistItemDto d, Listing listing){
     i.setName(d.name());
     i.setAddress(d.address());
     i.setMonthly(d.monthly());
@@ -144,6 +149,7 @@ public class ChecklistService {
     i.setVeranda(d.veranda());
     i.setPet(d.pet());
     i.setMemo(d.memo());
+    i.setListing(listing);
   }
 
   private void replaceItems(ChecklistItems i, ChecklistItemDto d){
@@ -182,7 +188,7 @@ public class ChecklistService {
     var itemsDto = new ChecklistItemDto(
         i.getName(), i.getAddress(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(), i.getOptions(), i.getSecurity(), i.getNoise(),
-        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(),
+        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(), i.getListing(),
         voiceSummary // 여기에 넣는다. null이면 응답에서 자동 생략됨
     );
     Double avg = round1(i.averageScore());

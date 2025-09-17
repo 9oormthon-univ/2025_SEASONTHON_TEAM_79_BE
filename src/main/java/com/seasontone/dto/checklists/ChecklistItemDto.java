@@ -1,6 +1,7 @@
 package com.seasontone.dto.checklists;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.seasontone.domain.listing.Listing;
 import jakarta.validation.constraints.Size;
 
 public record ChecklistItemDto(
@@ -22,6 +23,8 @@ public record ChecklistItemDto(
     Boolean veranda,
     Boolean pet,
     String memo,
+
+	Listing listing,
 		@JsonProperty("voicenote")
 		String voiceNote
 ) {}
