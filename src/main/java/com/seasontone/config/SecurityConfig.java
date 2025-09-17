@@ -42,6 +42,8 @@ public class SecurityConfig {
 						.frameOptions(frameOptions -> frameOptions.disable())
 				)
 				.authorizeHttpRequests(auth -> auth
+						//Spring Security에서 프리플라이트 전면허용 옵션
+						.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 								.requestMatchers("/sc", "/env").permitAll()
 								.requestMatchers(
 										"/v3/api-docs/**",
