@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seasontone.dto.checklists.ChecklistCreateRequest;
 import com.seasontone.dto.checklists.ChecklistUpdateRequest;
 import com.seasontone.dto.response.ChecklistGroupResponse;
+import com.seasontone.dto.response.ChecklistPreviewResponse;
 import com.seasontone.dto.response.ChecklistResponse;
 import com.seasontone.dto.response.MyChecklistResponse;
 import com.seasontone.domain.users.User;
@@ -41,16 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ChecklistController {
   private final ChecklistService checklistService;
   private final ObjectMapper objectMapper;
-
-  /*
-  //체크리스트 생성
-  @PostMapping("/checklists")
-  @ResponseStatus(HttpStatus.CREATED)
-  public ChecklistResponse create(@RequestBody @Valid ChecklistCreateRequest request) {
-    return checklistService.create(request);   // ← request 타입이 위 DTO여야 함
-  }
-
-   */
 
   //체크리스트 생성
   @PostMapping("/checklists")
@@ -121,4 +112,11 @@ public class ChecklistController {
     return ResponseEntity.ok(checklistService.getGroupedByAddress());
   }
 
+  //매물 검색 기능
+  @GetMapping(value = "/checklists/search", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<List<ChecklistPreviewResponse>> searchSummary(
+      @RequestParam("q") String q
+  ) {
+    return ResponseEntity.ok(checklistService.searchGroupedSummary(q));
+  }
 }
