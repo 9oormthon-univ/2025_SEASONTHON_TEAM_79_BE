@@ -21,6 +21,8 @@ public class CorsConfig {
         "http://43.200.96.110:8080"
     ));
     c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+    //CORS Bean을 관대한 설정으로
+    c.setAllowedHeaders(List.of("*"));
     c.setAllowedHeaders(List.of("Authorization","Content-Type"));
     c.setAllowCredentials(true);     // 쿠키/인증 헤더 허용시 true
     c.setMaxAge(3600L);              // preflight 캐시(초)
