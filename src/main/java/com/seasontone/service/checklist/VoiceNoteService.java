@@ -43,12 +43,12 @@ public class VoiceNoteService {
     v.setDurationSec(durationSec);
     v.setData(file.getBytes());
 
+
     try {
       String transcript = whisper.transcribeBytes(file.getBytes(), v.getContentType());
       String summary = summarizer.summarize(transcript);
       v.setTranscript(transcript);
       v.setSummary(summary);
-      i.setMemo((i.getMemo()==null || i.getMemo().isBlank()) ? summary : i.getMemo()+"\n\n[음성 요약]\n"+summary);
     } catch (Exception ignore) { }
 
     RecordVoiceNote saved = voiceRepo.save(v);
