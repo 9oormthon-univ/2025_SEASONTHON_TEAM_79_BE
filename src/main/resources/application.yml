@@ -54,3 +54,15 @@ spring:
 spring:
   config:
     import: optional:file:/opt/seasonthon/application-secret.yml
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.seasontone.jwt: DEBUG
+
+openai-service:
+  api-key: ${OPENAI_API_KEY}
+  base-url: ${OPENAI_BASE_URL}
+  gpt-model: GPT-5-nano
+  audio-model: whisper-1     # 5o or gpt-4o-mini-transcribe
+  language: ko
