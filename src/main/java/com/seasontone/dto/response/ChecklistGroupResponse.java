@@ -24,6 +24,8 @@ public class ChecklistGroupResponse {
 	public static class ChecklistDetailsResponse {
 		private Long id;
 		private String name;
+		private String description;
+		private int area;
 		private int monthly;
 		private int deposit;
 		private int maintenanceFee;

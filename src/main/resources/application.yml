@@ -32,6 +32,10 @@ spring:
             required: true
       default-encoding: UTF-8
 
+kakao:
+  rest-api:
+    key: ${KAKAO_REST_API_KEY}
+
 jwt:
   secret: ${JWT_SECRET_KEY}
   access-token:
@@ -46,4 +50,3 @@ spring:
     multipart:
       max-file-size: 30MB
       max-request-size: 60MB
-

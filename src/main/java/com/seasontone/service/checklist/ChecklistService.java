@@ -2,6 +2,7 @@ package com.seasontone.service.checklist;
 
 
 import com.seasontone.domain.checklists.RecordVoiceNote;
+import com.seasontone.domain.listing.Listing;
 import com.seasontone.dto.checklists.ChecklistCreateRequest;
 import com.seasontone.dto.checklists.ChecklistItemDto;
 import com.seasontone.dto.checklists.ChecklistUpdateRequest;
@@ -9,6 +10,7 @@ import com.seasontone.dto.photo.PhotoDto;
 import com.seasontone.dto.response.ChecklistPreviewResponse;
 import com.seasontone.dto.response.ChecklistGroupResponse;
 import com.seasontone.dto.response.ChecklistResponse;
+import com.seasontone.dto.response.MapChecklistItemResponse;
 import com.seasontone.dto.response.MyChecklistResponse;
 import com.seasontone.domain.checklists.ChecklistItems;
 import com.seasontone.domain.users.User;
@@ -16,6 +18,7 @@ import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.RecordPhotoRepository;
 import com.seasontone.repository.RecordVoiceNoteRepository;
 import com.seasontone.repository.user.UserRepository;
+import com.seasontone.service.listing.ListingService;
 import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.Comparator;
@@ -41,6 +44,7 @@ public class ChecklistService {
   private final RecordPhotoRepository photoRepo;
   private final RecordVoiceNoteRepository voiceRepo;
   private final VoiceNoteService voiceNoteService;
+  private final ListingService listingService;
 
   /*
   @Transactional
@@ -65,9 +69,11 @@ public class ChecklistService {
     User user = userRepository.findById(req.userId())
         .orElseThrow(() -> new EntityNotFoundException("User not found: " + req.userId()));
 
+    Listing listing = listingService.createListing(req.items().address(), req.items().name());
+
     ChecklistItems i = new ChecklistItems();
     i.setUser(user);
-    if (req.items() != null) applyItems(i, req.items());
+    if (req.items() != null) applyItems(i, req.items(), listing);
 
     ChecklistItems saved = itemsRepo.save(i); // checkId 확정
 
@@ -125,9 +131,13 @@ public class ChecklistService {
     itemsRepo.delete(i);
   }
 
-  private void applyItems(ChecklistItems i, ChecklistItemDto d){
+  private void applyItems(ChecklistItems i, ChecklistItemDto d, Listing listing){
     i.setName(d.name());
     i.setAddress(d.address());
+    i.setDetailAddress(d.detailAddress());
+    i.setRentType(d.rentType());
+    i.setRoomType(d.roomType());
+    i.setArea(d.area());
     i.setMonthly(d.monthly());
     i.setDeposit(d.deposit());
     i.setMaintenanceFee(d.maintenanceFee());
@@ -144,12 +154,17 @@ public class ChecklistService {
     i.setVeranda(d.veranda());
     i.setPet(d.pet());
     i.setMemo(d.memo());
+    i.setListing(listing);
   }
 
   private void replaceItems(ChecklistItems i, ChecklistItemDto d){
     // 전체 교체 정책(Null도 그대로 반영)
     i.setName(d.name());
     i.setAddress(d.address());
+    i.setDetailAddress(d.detailAddress());
+    i.setRentType(d.rentType());
+    i.setRoomType(d.roomType());
+    i.setArea(d.area());
     i.setMonthly(d.monthly());
     i.setDeposit(d.deposit());
     i.setMaintenanceFee(d.maintenanceFee());
@@ -180,9 +195,9 @@ public class ChecklistService {
         .orElse(null);
 
     var itemsDto = new ChecklistItemDto(
-        i.getName(), i.getAddress(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
+        i.getName(), i.getAddress(), i.getDetailAddress(), i.getRentType(), i.getRoomType(), i.getArea(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(), i.getOptions(), i.getSecurity(), i.getNoise(),
-        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(),
+        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(), i.getListing(),
         voiceSummary // 여기에 넣는다. null이면 응답에서 자동 생략됨
     );
     Double avg = round1(i.averageScore());
@@ -350,6 +365,34 @@ public class ChecklistService {
             // 기존 라우팅 규칙 유지
             "/api/checklists/%d/photos/%d/raw".formatted(itemsId, m.getId())
         ))
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public List<MapChecklistItemResponse> listAllByMarker(Long listingId) {
+    // 1) 마커가 가리키는 listingId -> 대표 도로명
+    String road = listingService.getRoadAddressOf(listingId);
+
+    // 2) 그 도로명에 해당하는 모든 체크리스트 조회
+    List<ChecklistItems> items = itemsRepo.findAllByListingRoadAddress(road);
+
+    // 3) 원하는 응답 DTO로 매핑
+    return items.stream()
+        .map(ci -> MapChecklistItemResponse.builder()
+            .id(ci.getId())
+            .name(ci.getName())
+            .address(ci.getAddress())              // 도로명
+            .detailAddress(ci.getDetailAddress())  // 상세주소
+            .area(ci.getArea())
+
+            .monthly(ci.getMonthly())
+            .deposit(ci.getDeposit())
+            .maintenanceFee(ci.getMaintenanceFee())
+            .floorAreaSqm(ci.getFloorAreaSqm())
+
+            .score(round1(ci.averageScore()))
+            .build()
+        )
         .toList();
   }
 

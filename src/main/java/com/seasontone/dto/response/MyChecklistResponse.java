@@ -13,6 +13,8 @@ public class MyChecklistResponse {
 	private Long id; //id
 	private String aptNm; // 아파트명
 	private String address; // 주소
+	private String detailAddress;
+	private int area;
 	private int deposit; // 보증금
 	private int monthly; // 월세
 	private int maintenanceFee; // 관리비
