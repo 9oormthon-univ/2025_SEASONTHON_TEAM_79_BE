@@ -1,5 +1,6 @@
 package com.seasontone.service.user;
 
+import com.seasontone.domain.checklists.ChecklistItems;
 import com.seasontone.domain.users.PasswordResetCode;
 import com.seasontone.domain.users.PasswordResetToken;
 import com.seasontone.dto.password.PasswordResetCodeRequest;
@@ -23,12 +24,15 @@ import com.seasontone.domain.users.EmailCode;
 import com.seasontone.domain.users.RefreshToken;
 import com.seasontone.domain.users.User;
 import com.seasontone.jwt.JwtUtil;
+import com.seasontone.repository.ChecklistItemsRepository;
 import com.seasontone.repository.user.EmailCodeRepository;
 import com.seasontone.repository.user.PasswordResetCodeRepository;
 import com.seasontone.repository.user.PasswordResetTokenRepository;
 import com.seasontone.repository.user.RefreshTokenRepository;
 import com.seasontone.repository.user.UserRepository;
+import com.seasontone.service.checklist.ChecklistService;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +58,7 @@ public class UserService {
 	private String fromEmail;
 	private final PasswordResetTokenRepository passwordResetTokenRepository;
 	private final PasswordResetCodeRepository passwordResetCodeRepository;
+	private final ChecklistItemsRepository checklistItemsRepository;
 
 	private static final long RESET_CODE_TTL = 300L;   // 5분
 	private static final long RESET_TOKEN_TTL = 600L;  // 10분
@@ -173,8 +178,14 @@ public class UserService {
 				.build();
 	}
 
+	@Transactional
 	public void deleteProfiles(User user) {
 		User findUser = userRepository.findById(user.getId()).orElseThrow(()->new NullPointerException("존재하지 않는 회원입니다."));
+
+		List<ChecklistItems> items = checklistItemsRepository.findByUser(findUser);
+		for (ChecklistItems item : items) {
+			checklistItemsRepository.deleteById(item.getId());
+		}
 
 		userRepository.delete(findUser);
 	}
