@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,7 +31,9 @@ public class Listing extends BaseEntity {
 
 	private String roadAddress;
 
-	private Long latitude;
+	@Column(precision = 16, scale = 13)
+	private BigDecimal latitude;
 
-	private Long longitude;
+	@Column(precision = 16, scale = 13)
+	private BigDecimal longitude;
 }

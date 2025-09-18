@@ -3,6 +3,7 @@ package com.seasontone.service.listing;
 import com.seasontone.domain.listing.Listing;
 import com.seasontone.dto.listing.KakaoAddressResponse;
 import com.seasontone.repository.listing.ListingRepository;
+import java.math.BigDecimal;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,8 +30,8 @@ public class ListingService {
 		KakaoAddressResponse.Document coordinates = getCoordinates(roadAddress);
 		Listing listing = Listing.builder()
 				.listingName(listingName)
-				.latitude(Long.parseLong(coordinates.getY()))
-				.longitude(Long.parseLong(coordinates.getX()))
+				.latitude(new BigDecimal(coordinates.getY()))
+				.longitude(new BigDecimal(coordinates.getX()))
 				.roadAddress(roadAddress)
 				.build();
 

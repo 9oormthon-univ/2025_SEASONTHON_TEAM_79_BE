@@ -32,6 +32,10 @@ spring:
             required: true
       default-encoding: UTF-8
 
+kakao:
+  rest-api:
+    key: ${KAKAO_REST_API_KEY}
+
 jwt:
   secret: ${JWT_SECRET_KEY}
   access-token:
@@ -40,9 +44,6 @@ jwt:
   refresh-token:
     header: Authorization_refresh
     expiration-time: 604800 #60 * 60 * 24 * 7 (7일)
-kakao:
-  rest-api:
-    key: ${KAKAO_REST_API_KEY}
 ---
 spring:
   servlet:
