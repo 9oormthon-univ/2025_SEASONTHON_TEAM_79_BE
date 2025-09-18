@@ -1,5 +1,7 @@
 package com.seasontone.dto.response;
 
+import com.seasontone.domain.enums.RentType;
+import com.seasontone.domain.enums.RoomType;
 import com.seasontone.dto.photo.PhotoDto;
 import java.util.List;
 import lombok.Builder;
@@ -12,8 +14,10 @@ import lombok.Setter;
 public class MyChecklistResponse {
 	private Long id; //id
 	private String aptNm; // 아파트명
-	private String address; // 주소
+	private String address;
 	private String detailAddress;
+	private RentType rentType;
+	private RoomType roomType;
 	private int area;
 	private int deposit; // 보증금
 	private int monthly; // 월세

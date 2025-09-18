@@ -88,11 +88,4 @@ public class ChecklistItems extends BaseEntity{
     var s = scores();
     return s.isEmpty() ? 0.0 : s.stream().mapToInt(Integer::intValue).average().orElse(0.0);
   }
-
-  /*
-  public void addPhoto(RecordPhoto p){ photos.add(p); p.setItems(this); }
-  public void removePhoto(RecordPhoto p){ photos.remove(p); p.setItems(null); }
-  public void setVoiceNote(RecordVoiceNote v){ this.voiceNote = v; if (v!=null) v.setItems(this); }
-
-   */
 }

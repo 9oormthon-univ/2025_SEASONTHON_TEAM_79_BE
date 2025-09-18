@@ -1,5 +1,7 @@
 package com.seasontone.dto.response;
 
+import com.seasontone.domain.enums.RentType;
+import com.seasontone.domain.enums.RoomType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -7,8 +9,11 @@ import lombok.Getter;
 @Builder
 public class ChecklistPreviewResponse {
   private String address;
+  private String detailAddress;
+  private RentType rentType;
+  private RoomType roomType;
   private String latestName;
-  private int latestArea;
+  private int area;
   private int latestMonthly;
   private int latestDeposit;
   private int latestMaintenanceFee;
