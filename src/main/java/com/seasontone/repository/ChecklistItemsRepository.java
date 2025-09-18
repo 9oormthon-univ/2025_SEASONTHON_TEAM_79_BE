@@ -34,4 +34,13 @@ public interface ChecklistItemsRepository extends JpaRepository<ChecklistItems, 
        lower(replace(ci.address, ' ', '')) like concat('%', :key, '%'))
   """)
 	List<ChecklistItems> searchByNameOrAddressNoSpace(@Param("key") String key);
+
+	@Query("""
+        select ci
+        from ChecklistItems ci
+        join ci.listing l
+        where l.roadAddress = :road
+        order by ci.id desc
+    """)
+	List<ChecklistItems> findAllByListingRoadAddress(@Param("road") String road);
 }

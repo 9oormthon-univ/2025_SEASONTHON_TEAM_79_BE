@@ -1,11 +1,15 @@
 package com.seasontone.domain.checklists;
 
 import com.seasontone.domain.BaseEntity;
+import com.seasontone.domain.enums.RentType;
+import com.seasontone.domain.enums.RoomType;
 import com.seasontone.domain.listing.Listing;
 import com.seasontone.domain.users.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,7 +34,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "checklist_items")
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class ChecklistItems /* extends BaseEntity (원하면 제거 가능) */ {
+public class ChecklistItems extends BaseEntity{
 
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "check_id")
@@ -41,8 +45,17 @@ public class ChecklistItems /* extends BaseEntity (원하면 제거 가능) */ {
   private User user;
 
   // ===== 폼 필드만 유지 =====
-  @Column(length = 255) private String name;
-  @Column(length = 255) private String address;
+  @Column private String name;
+  @Column private String address;
+  @Column(name = "detail_address")
+  private String detailAddress;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "rent_type", length = 20) // nullable 허용(기존 데이터 호환)
+  private RentType rentType;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "room_type", length = 20)
+  private RoomType roomType;
+  private Integer area;
   private Integer monthly;
   private Integer deposit;
   private Integer maintenanceFee;
@@ -76,7 +89,10 @@ public class ChecklistItems /* extends BaseEntity (원하면 제거 가능) */ {
     return s.isEmpty() ? 0.0 : s.stream().mapToInt(Integer::intValue).average().orElse(0.0);
   }
 
+  /*
   public void addPhoto(RecordPhoto p){ photos.add(p); p.setItems(this); }
   public void removePhoto(RecordPhoto p){ photos.remove(p); p.setItems(null); }
   public void setVoiceNote(RecordVoiceNote v){ this.voiceNote = v; if (v!=null) v.setItems(this); }
+
+   */
 }

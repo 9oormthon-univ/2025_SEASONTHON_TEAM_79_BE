@@ -8,6 +8,7 @@ import lombok.Getter;
 public class ChecklistPreviewResponse {
   private String address;
   private String latestName;
+  private int latestArea;
   private int latestMonthly;
   private int latestDeposit;
   private int latestMaintenanceFee;
