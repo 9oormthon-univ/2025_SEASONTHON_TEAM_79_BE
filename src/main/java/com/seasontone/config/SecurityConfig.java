@@ -52,14 +52,14 @@ public class SecurityConfig {
 										"/swagger-ui.html"
 								).permitAll()
 								.requestMatchers(HttpMethod.GET,"/api/**").permitAll()
-								.requestMatchers(HttpMethod.GET,"/map/**").permitAll()
 								.requestMatchers("/users/**").permitAll()
-								.anyRequest().permitAll()
-								//.anyRequest().authenticated()
+								.anyRequest().authenticated()
+
 				)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
 		return http.build();
 	}
+
 }
 
