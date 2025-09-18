@@ -4,6 +4,7 @@ import com.seasontone.domain.listing.Listing;
 import com.seasontone.dto.listing.KakaoAddressResponse;
 import com.seasontone.dto.response.MapMarkerResponse;
 import com.seasontone.repository.listing.ListingRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,13 +22,22 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 public class ListingService {
+
 	private static final String API_URL = "https://dapi.kakao.com/v2/local/search/address.json";
-	@Value("${openai.api-key:${OPENAI_API_KEY:}}")
-	private String REST_API_KEY;
-	private final String API_KEY = "KakaoAK "; // 실제 키로 교체
+	private static final String KAKAO_AUTH_PREFIX = "KakaoAK "; // 접두어만 둡니다.
+
+	// ✅ 카카오 키를 파일(yml) → 없으면 환경변수로 폴백
+	@Value("${kakao.rest-api.key:${KAKAO_REST_API_KEY:}}")
+	private String kakaoApiKey;
+
+	@PostConstruct
+	void verifyKeys() {
+		if (kakaoApiKey == null || kakaoApiKey.isBlank()) {
+			throw new IllegalStateException("Kakao key missing. Set `kakao.rest-api.key` or env `KAKAO_REST_API_KEY`");
+		}
+	}
 
 	private final RestTemplate restTemplate = new RestTemplate();
-
 	private final ListingRepository listingRepository;
 
 	public Listing createListing(String roadAddress, String listingName) {
@@ -43,12 +53,10 @@ public class ListingService {
 		return listing;
 	}
 
-
-
 	public KakaoAddressResponse.Document getCoordinates(String query) {
 		// Header 설정
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Authorization", API_KEY + REST_API_KEY);
+		headers.set("Authorization", KAKAO_AUTH_PREFIX + kakaoApiKey);
 
 		HttpEntity<Void> request = new HttpEntity<>(headers);
 
@@ -64,7 +72,7 @@ public class ListingService {
 		KakaoAddressResponse body = response.getBody();
 
 		return Optional.ofNullable(body)
-				.filter(b -> !b.getDocuments().isEmpty())
+				.filter(b -> b.getDocuments() != null && !b.getDocuments().isEmpty())
 				.map(b -> b.getDocuments().get(0))
 				.orElseThrow(() -> new IllegalArgumentException("좌표 변환 실패: " + query));
 	}
@@ -83,7 +91,6 @@ public class ListingService {
 				.toList();
 	}
 
-	//도로명으로 조회 도움
 	@Transactional(readOnly = true)
 	public String getRoadAddressOf(Long listingId) {
 		return listingRepository.findById(listingId)
