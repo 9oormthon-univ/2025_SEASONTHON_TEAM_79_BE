@@ -1,5 +1,10 @@
 package com.seasontone.controller.user;
 
+import com.seasontone.dto.password.PasswordResetCodeRequest;
+import com.seasontone.dto.password.PasswordResetCodeVerifyRequest;
+import com.seasontone.dto.password.PasswordResetCodeVerifyResponse;
+import com.seasontone.dto.password.PasswordResetRequest;
+import com.seasontone.dto.password.SimpleMessageResponse;
 import com.seasontone.dto.user.EmailCodeRequest;
 import com.seasontone.dto.user.EmailCodeResponse;
 import com.seasontone.dto.user.EmailCodeVerifyRequest;
@@ -85,6 +90,27 @@ public class UserController {
 	public ResponseEntity<String> deleteProfiles(@AuthenticationPrincipal User user) {
 		userService.deleteProfiles(user);
 		return ResponseEntity.status(HttpStatus.OK).body("회원 탈퇴 완료");
+	}
+
+	// 1) 코드 요청
+	@PostMapping("/password/code/request")
+	public ResponseEntity<SimpleMessageResponse> requestPasswordResetCode(
+			@RequestBody PasswordResetCodeRequest request) {
+		return ResponseEntity.ok(userService.requestPasswordResetCode(request));
+	}
+
+	// 2) 코드 검증 -> resetToken 획득
+	@PostMapping("/password/code/verify")
+	public ResponseEntity<PasswordResetCodeVerifyResponse> verifyPasswordResetCode(
+			@RequestBody PasswordResetCodeVerifyRequest request) {
+		return ResponseEntity.ok(userService.verifyPasswordResetCode(request));
+	}
+
+	// 3) 비밀번호 재설정 (resetToken 사용)
+	@PostMapping("/password/reset")
+	public ResponseEntity<SimpleMessageResponse> resetPassword(
+			@RequestBody PasswordResetRequest request) {
+		return ResponseEntity.ok(userService.resetPassword(request));
 	}
 }
 
