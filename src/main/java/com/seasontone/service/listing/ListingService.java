@@ -22,7 +22,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class ListingService {
 	private static final String API_URL = "https://dapi.kakao.com/v2/local/search/address.json";
-	@Value("${kakao.rest-api.key}")
+	@Value("${openai.api-key:${OPENAI_API_KEY:}}")
 	private String REST_API_KEY;
 	private final String API_KEY = "KakaoAK "; // 실제 키로 교체
 
