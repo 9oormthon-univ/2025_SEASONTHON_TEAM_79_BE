@@ -58,7 +58,7 @@ public class ChecklistService {
 
     ChecklistItems i = new ChecklistItems();
     i.setUser(user);
-    if (req.items() != null) applyItems(i, req.items(), listing);
+    applyItems(i, req.items(), listing);
 
     ChecklistItems saved = itemsRepo.save(i); // checkId 확정
 
