@@ -55,23 +55,23 @@ public class SecurityConfig {
 								.requestMatchers(HttpMethod.GET,"/map/**").permitAll()
 								.requestMatchers("/users/**").permitAll()
 
-						.requestMatchers(HttpMethod.GET,
-								"/api/checklists",
-								"/api/checklists/*",
-								"/api/checklists/search"
-						).permitAll()
+								.requestMatchers(HttpMethod.GET,
+										"/api/checklists",
+										"/api/checklists/*",
+										"/api/checklists/search"
+								).permitAll()
 
-						//로그인 필요한 GET
-						.requestMatchers(HttpMethod.GET,
-								"/api/checklists/mine",
-								"/api/checklists/region"
-						).authenticated()
+								//로그인 필요한 GET
+								.requestMatchers(HttpMethod.GET,
+										"/api/checklists/mine",
+										"/api/checklists/region"
+								).authenticated()
 
-						//체크리스트 생성/수정/삭제/업로드는 인증 필요
-						.requestMatchers(HttpMethod.POST,   "/api/checklists/**").authenticated()
-						.requestMatchers(HttpMethod.PUT,    "/api/checklists/**").authenticated()
-						.requestMatchers(HttpMethod.DELETE, "/api/checklists/**").authenticated()
-						.anyRequest().authenticated()
+								//체크리스트 생성/수정/삭제/업로드는 인증 필요
+								.requestMatchers(HttpMethod.POST,   "/api/checklists/**").authenticated()
+								.requestMatchers(HttpMethod.PUT,    "/api/checklists/**").authenticated()
+								.requestMatchers(HttpMethod.DELETE, "/api/checklists/**").authenticated()
+								.anyRequest().authenticated()
 				)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
