@@ -46,21 +46,6 @@ public class ChecklistService {
   private final VoiceNoteService voiceNoteService;
   private final ListingService listingService;
 
-  /*
-  @Transactional
-  public ChecklistResponse create(ChecklistCreateRequest req) {
-    User user = userRepository.findById(req.userId())
-        .orElseThrow(() -> new EntityNotFoundException("User not found: " + req.userId()));
-
-    ChecklistItems i = new ChecklistItems();
-    i.setUser(user);
-    if (req.items() != null) applyItems(i, req.items());
-
-    return toResponse(itemsRepo.save(i));
-  }
-
-   */
-
   // ★ 신규 오버로드: 음성파일 동시 처리
   @Transactional
   public ChecklistResponse create(ChecklistCreateRequest req,
@@ -73,7 +58,7 @@ public class ChecklistService {
 
     ChecklistItems i = new ChecklistItems();
     i.setUser(user);
-    if (req.items() != null) applyItems(i, req.items(), listing);
+    applyItems(i, req.items(), listing);
 
     ChecklistItems saved = itemsRepo.save(i); // checkId 확정
 
@@ -106,6 +91,10 @@ public class ChecklistService {
             .id(ci.getId())
             .aptNm(ci.getName())
             .address(ci.getAddress())
+            .detailAddress(ci.getDetailAddress()) //추가
+            .rentType(ci.getRentType())
+            .roomType(ci.getRoomType())
+            .area(nz(ci.getArea()))
             .deposit(ci.getDeposit() == null ? 0 : ci.getDeposit())
             .monthly(ci.getMonthly() == null ? 0 : ci.getMonthly())
             .maintenanceFee(ci.getMaintenanceFee() == null ? 0 : ci.getMaintenanceFee())
@@ -197,7 +186,7 @@ public class ChecklistService {
     var itemsDto = new ChecklistItemDto(
         i.getName(), i.getAddress(), i.getDetailAddress(), i.getRentType(), i.getRoomType(), i.getArea(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(), i.getOptions(), i.getSecurity(), i.getNoise(),
-        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(), i.getListing(),
+        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(), (i.getListing() != null ? i.getListing().getId() : null),
         voiceSummary // 여기에 넣는다. null이면 응답에서 자동 생략됨
     );
     Double avg = round1(i.averageScore());
@@ -254,6 +243,10 @@ public class ChecklistService {
                               .map(checklist -> ChecklistGroupResponse.ChecklistDetailsResponse.builder()
                                       .id(checklist.getId())
                                       .name(checklist.getName())
+                                      .detailAddress(checklist.getDetailAddress()) //추가
+                                      .rentType(checklist.getRentType())
+                                      .roomType(checklist.getRoomType())
+                                      .area(nz(checklist.getArea()))
                                       .monthly(checklist.getMonthly())
                                       .deposit(checklist.getDeposit())
                                       .maintenanceFee(checklist.getMaintenanceFee())
@@ -300,6 +293,10 @@ public class ChecklistService {
                   .map(checklist -> ChecklistGroupResponse.ChecklistDetailsResponse.builder()
                       .id(checklist.getId())
                       .name(checklist.getName())
+                      .detailAddress(checklist.getDetailAddress()) // 추가
+                      .rentType(checklist.getRentType())
+                      .roomType(checklist.getRoomType())
+                      .area(nz(checklist.getArea()))
                       .monthly(checklist.getMonthly())
                       .deposit(checklist.getDeposit())
                       .maintenanceFee(checklist.getMaintenanceFee())
@@ -341,6 +338,10 @@ public class ChecklistService {
 
           return ChecklistPreviewResponse.builder()
               .address(entry.getKey())
+              .detailAddress(safeStr(latest.getDetailAddress())) // 추가
+              .rentType(latest.getRentType())
+              .roomType(latest.getRoomType())
+              .area(nz(latest.getArea()))
               .latestName(safeStr(latest.getName()))
               .latestMonthly(nz(latest.getMonthly()))
               .latestDeposit(nz(latest.getDeposit()))

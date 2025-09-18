@@ -47,14 +47,12 @@ public class ChecklistItems extends BaseEntity{
   // ===== 폼 필드만 유지 =====
   @Column private String name;
   @Column private String address;
-  @Column(name = "detail_address")
-  private String detailAddress;
+  @Column private String detailAddress;
   @Enumerated(EnumType.STRING)
-  @Column(name = "rent_type", length = 20) // nullable 허용(기존 데이터 호환)
+  @Column // nullable 허용(기존 데이터 호환)
   private RentType rentType;
   @Enumerated(EnumType.STRING)
-  @Column(name = "room_type", length = 20)
-  private RoomType roomType;
+  @Column private RoomType roomType;
   private Integer area;
   private Integer monthly;
   private Integer deposit;
@@ -72,7 +70,7 @@ public class ChecklistItems extends BaseEntity{
   private List<RecordPhoto> photos = new ArrayList<>();
 
   // voice: 1:1 (비식별)
-  @OneToOne(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  @OneToOne(mappedBy = "items", cascade = CascadeType.ALL, orphanRemoval = true)
   private RecordVoiceNote voiceNote;
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -88,11 +86,4 @@ public class ChecklistItems extends BaseEntity{
     var s = scores();
     return s.isEmpty() ? 0.0 : s.stream().mapToInt(Integer::intValue).average().orElse(0.0);
   }
-
-  /*
-  public void addPhoto(RecordPhoto p){ photos.add(p); p.setItems(this); }
-  public void removePhoto(RecordPhoto p){ photos.remove(p); p.setItems(null); }
-  public void setVoiceNote(RecordVoiceNote v){ this.voiceNote = v; if (v!=null) v.setItems(this); }
-
-   */
 }

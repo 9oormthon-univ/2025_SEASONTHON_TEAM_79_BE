@@ -1,5 +1,6 @@
 package com.seasontone.dto.response;
 
+/*
 public record RecordDetailResponse(
     Long id,
     Double avgScore,
@@ -20,3 +21,5 @@ public record RecordDetailResponse(
     Boolean isPetAllowed,
     String notes
 ) {}
+
+ */

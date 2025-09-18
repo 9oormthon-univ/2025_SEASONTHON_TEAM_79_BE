@@ -1,5 +1,12 @@
 package com.seasontone.service.user;
 
+import com.seasontone.domain.users.PasswordResetCode;
+import com.seasontone.domain.users.PasswordResetToken;
+import com.seasontone.dto.password.PasswordResetCodeRequest;
+import com.seasontone.dto.password.PasswordResetCodeVerifyRequest;
+import com.seasontone.dto.password.PasswordResetCodeVerifyResponse;
+import com.seasontone.dto.password.PasswordResetRequest;
+import com.seasontone.dto.password.SimpleMessageResponse;
 import com.seasontone.dto.user.EmailCodeRequest;
 import com.seasontone.dto.user.EmailCodeResponse;
 import com.seasontone.dto.user.EmailCodeVerifyRequest;
@@ -17,9 +24,13 @@ import com.seasontone.domain.users.RefreshToken;
 import com.seasontone.domain.users.User;
 import com.seasontone.jwt.JwtUtil;
 import com.seasontone.repository.user.EmailCodeRepository;
+import com.seasontone.repository.user.PasswordResetCodeRepository;
+import com.seasontone.repository.user.PasswordResetTokenRepository;
 import com.seasontone.repository.user.RefreshTokenRepository;
 import com.seasontone.repository.user.UserRepository;
 import java.security.SecureRandom;
+import java.util.Objects;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -41,6 +52,11 @@ public class UserService {
 	private final JavaMailSender mailSender;
 	@Value("${spring.mail.username}")
 	private String fromEmail;
+	private final PasswordResetTokenRepository passwordResetTokenRepository;
+	private final PasswordResetCodeRepository passwordResetCodeRepository;
+
+	private static final long RESET_CODE_TTL = 300L;   // 5분
+	private static final long RESET_TOKEN_TTL = 600L;  // 10분
 
 	@Transactional
 	public RegisterResponse register(RegisterRequest request) {
@@ -161,6 +177,62 @@ public class UserService {
 		User findUser = userRepository.findById(user.getId()).orElseThrow(()->new NullPointerException("존재하지 않는 회원입니다."));
 
 		userRepository.delete(findUser);
+	}
+
+	// 비밀번호 재설정: 코드 요청
+	public SimpleMessageResponse requestPasswordResetCode(PasswordResetCodeRequest request) {
+		// 1) 계정 존재 유무 확인 (노출은 하지 않음)
+		boolean exists = userRepository.existsByEmail(request.getEmail());
+		if (exists) {
+			String code = String.format("%06d", new SecureRandom().nextInt(1_000_000));
+			passwordResetCodeRepository.save(new PasswordResetCode(request.getEmail(), code, RESET_CODE_TTL));
+
+			// 메일 전송 (기존 mailSender 재사용)
+			SimpleMailMessage message = new SimpleMailMessage();
+			message.setTo(request.getEmail());
+			message.setFrom(fromEmail);
+			message.setSubject("Password Reset Verification Code");
+			message.setText("Your password reset code is " + code + "\n(The code will expire in 5 minutes.)");
+			mailSender.send(message);
+		}
+		// 존재하지 않아도 같은 응답 (정보 노출 방지)
+		return new SimpleMessageResponse("If the account exists, a verification code has been sent.");
+	}
+
+	// 비밀번호 재설정: 코드 검증 -> resetToken 발급
+	public PasswordResetCodeVerifyResponse verifyPasswordResetCode(
+			PasswordResetCodeVerifyRequest request) {
+		PasswordResetCode saved = passwordResetCodeRepository.findById(request.getEmail())
+				.orElseThrow(() -> new IllegalArgumentException("인증 코드가 올바르지 않습니다."));
+
+		if (!Objects.equals(saved.getCode(), request.getCode())) {
+			throw new IllegalArgumentException("인증 코드가 올바르지 않습니다.");
+		}
+
+		// 코드 일회용 처리
+		passwordResetCodeRepository.deleteById(request.getEmail());
+
+		// resetToken 발급 (UUID)
+		String token = UUID.randomUUID().toString();
+		passwordResetTokenRepository.save(new PasswordResetToken(token, request.getEmail(), RESET_TOKEN_TTL));
+
+		return new PasswordResetCodeVerifyResponse(true, token);
+	}
+
+	// 실제 비밀번호 재설정
+	@Transactional
+	public SimpleMessageResponse resetPassword(PasswordResetRequest request) {
+		PasswordResetToken token = passwordResetTokenRepository.findById(request.getResetToken())
+				.orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
+
+		User user = userRepository.findByEmail(token.getEmail())
+				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		// 토큰 소모
+		passwordResetTokenRepository.deleteById(request.getResetToken());
+
+		return new SimpleMessageResponse("비밀번호가 재설정되었습니다.");
 	}
 }
 
