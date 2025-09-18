@@ -4,6 +4,7 @@ import com.seasontone.domain.listing.Listing;
 import com.seasontone.dto.listing.KakaoAddressResponse;
 import com.seasontone.dto.response.MapMarkerResponse;
 import com.seasontone.repository.listing.ListingRepository;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,6 +26,13 @@ public class ListingService {
 	@Value("${openai.api-key:${OPENAI_API_KEY:}}")
 	private String REST_API_KEY;
 	private final String API_KEY = "KakaoAK "; // 실제 키로 교체
+
+	@PostConstruct
+	void verifyKeys() {
+		if (REST_API_KEY == null || REST_API_KEY.isBlank()) {
+			throw new IllegalStateException("Kakao key missing. Set `kakao.rest-api.key` or env `KAKAO_REST_API_KEY`");
+		}
+	}
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
