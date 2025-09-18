@@ -197,7 +197,7 @@ public class ChecklistService {
     var itemsDto = new ChecklistItemDto(
         i.getName(), i.getAddress(), i.getDetailAddress(), i.getRentType(), i.getRoomType(), i.getArea(), i.getMonthly(), i.getDeposit(), i.getMaintenanceFee(), i.getFloorAreaSqm(),
         i.getMining(), i.getWater(), i.getCleanliness(), i.getOptions(), i.getSecurity(), i.getNoise(),
-        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(), i.getListing(),
+        i.getSurroundings(), i.getRecycling(), i.getElevator(), i.getVeranda(), i.getPet(), i.getMemo(), (i.getListing() != null ? i.getListing().getId() : null),
         voiceSummary // 여기에 넣는다. null이면 응답에서 자동 생략됨
     );
     Double avg = round1(i.averageScore());

@@ -30,7 +30,7 @@ public record ChecklistItemDto(
 		Boolean pet,
 		String memo,
 
-		Listing listing,
+		Long listingId,
 		@JsonProperty("voicenote")
 		String voiceNote
 ) {}
